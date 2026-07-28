@@ -1,0 +1,243 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap');
+
+/* 
+  SENTINEL GPT - CORE DESIGN SYSTEM 
+  Production-grade fault-tolerant CSS architecture.
+*/
+
+:root {
+  --primary: #00f2ff;
+  --secondary: #7000ff;
+  --bg-dark: #050510;
+  --card-bg: rgba(255, 255, 255, 0.05);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --text-main: #ffffff;
+  --text-dim: #a0a0c0;
+  --danger: #ff0055;
+  --warning: #ffcc00;
+  --success: #00ffaa;
+}
+
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  background-image: 
+    radial-gradient(circle at 10% 10%, rgba(112, 0, 255, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 90% 90%, rgba(0, 242, 255, 0.1) 0%, transparent 40%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Glassmorphism System */
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Typography & Glows */
+.glow-text {
+  text-shadow: 0 0 15px rgba(0, 242, 255, 0.5);
+}
+
+.glow-primary {
+  color: var(--primary);
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+}
+
+.glow-secondary {
+  color: var(--secondary);
+  text-shadow: 0 0 10px rgba(112, 0, 255, 0.3);
+}
+
+/* Animation Engine */
+@keyframes pulse-glow {
+  0% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.8; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Custom Scrollbar System */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--glass-border);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* Layout Core Utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+.grid { display: grid; }
+.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+.p-6 { padding: 1.5rem; }
+.mb-4 { margin-bottom: 1rem; }
+.mt-2 { margin-top: 0.5rem; }
+.rounded-full { border-radius: 9999px; }
+.text-sm { font-size: 0.875rem; }
+.font-bold { font-weight: 700; }
+.overflow-hidden { overflow: hidden; }
+.w-full { width: 100%; }
+.transition-all { transition: all 0.3s ease; }
+
+/* Responsive Grid Adapters */
+@media (min-width: 768px) {
+  .md\:grid-cols-2 { 
+    grid-template-columns: repeat(2, minmax(0, 1fr)); 
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:grid-cols-4 { 
+    grid-template-columns: repeat(4, minmax(0, 1fr)); 
+  }
+  .lg\:grid-cols-3 { 
+    grid-template-columns: repeat(3, minmax(0, 1fr)); 
+  }
+}
+
+/* 
+  COMPLEX DASHBOARD COMPONENTS (Extended for Stability)
+  Ensuring all blocks are properly closed below line 150.
+*/
+
+.threat-row {
+  display: flex;
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease;
+}
+
+.threat-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.risk-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  position: relative;
+}
+
+.risk-critical {
+  background: var(--danger);
+  box-shadow: 0 0 10px var(--danger);
+}
+
+.risk-warning {
+  background: var(--warning);
+  box-shadow: 0 0 10px var(--warning);
+}
+
+/* Security Matrix Table Styles */
+.sentinel-table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+.sentinel-table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.sentinel-table td {
+  padding: 1rem;
+  font-size: 0.875rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Action Buttons */
+.btn-quarantine {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 0, 85, 0.1);
+  color: var(--danger);
+  border: 1px solid rgba(255, 0, 85, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-quarantine:hover {
+  background: var(--danger);
+  color: white;
+}
+
+/* Initialization Markers (For Diagnostic Purposes) */
+.system-booting {
+  user-select: none;
+  pointer-events: none;
+}
+
+/* End of Production-Ready CSS Matrix */

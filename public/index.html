@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelGPT | AI Autonomous Cyber Defense</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-mode">
+    <div id="loader" class="loader-wrapper">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Auth Container -->
+    <div id="auth-container" class="container hidden">
+        <div class="auth-card glass">
+            <div class="auth-header">
+                <i data-lucide="shield-alert" class="brand-icon"></i>
+                <h1>Sentinel<span>GPT</span></h1>
+                <p>Autonomous AI Matrix Login</p>
+            </div>
+            <form id="login-form">
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input type="email" id="email" placeholder="admin@sentinel.ai" required>
+                </div>
+                <div class="input-group">
+                    <label>Security Key</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-primary">Initialize Access</button>
+            </form>
+            <p class="auth-footer">Restricted Access. Authorized Personnel Only.</p>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app-container" class="hidden">
+        <nav class="glass">
+            <div class="nav-left">
+                <i data-lucide="activity" class="nav-icon"></i>
+                <span class="brand">Sentinel<span>GPT</span></span>
+            </div>
+            <div class="nav-right">
+                <span id="user-email"></span>
+                <button id="logout-btn" class="btn-icon"><i data-lucide="log-out"></i></button>
+            </div>
+        </nav>
+
+        <main class="dashboard-grid">
+            <!-- Sidebar / Stats -->
+            <aside class="sidebar">
+                <div class="card glass stat-card">
+                    <div class="stat-header">
+                        <i data-lucide="zap" class="icon-warning"></i>
+                        <span>System Risk</span>
+                    </div>
+                    <div id="risk-score-display" class="stat-value">0</div>
+                    <div id="risk-level" class="stat-label">SAFE</div>
+                    <div class="risk-gauge">
+                        <div id="risk-fill" class="risk-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="card glass stat-card">
+                    <div class="stat-header">
+                        <i data-lucide="shield" class="icon-success"></i>
+                        <span>Active Shields</span>
+                    </div>
+                    <div id="active-shields" class="stat-value">ONLINE</div>
+                    <div class="stat-label">Heuristic Engine Active</div>
+                </div>
+
+                <button id="simulate-threat" class="btn-secondary glass">
+                    <i data-lucide="bug"></i> Simulate Threat
+                </button>
+                <button id="export-csv" class="btn-secondary glass">
+                    <i data-lucide="download"></i> Export Logs (CSV)
+                </button>
+            </aside>
+
+            <!-- Main Content Area -->
+            <section class="main-content">
+                <div class="top-row">
+                    <div class="card glass chart-container">
+                        <div class="card-header">
+                            <h3>Threat Probability Trend</h3>
+                        </div>
+                        <canvas id="threatChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bottom-row">
+                    <div class="card glass threat-log">
+                        <div class="card-header">
+                            <h3>Real-Time Threat Matrix</h3>
+                            <span class="badge pulse">LIVE FEED</span>
+                        </div>
+                        <div class="table-wrapper">
+                            <table>
+                               <thead>
+                                   <tr>
+                                       <th>Timestamp</th>
+                                       <th>Threat Vector</th>
+                                       <th>Source IP</th>
+                                       <th>Risk</th>
+                                       <th>AI Action</th>
+                                   </tr>
+                               </thead>
+                               <tbody id="threat-table-body">
+                                   <!-- Data injected here -->
+                               </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="app.js"></script>
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
+</html>

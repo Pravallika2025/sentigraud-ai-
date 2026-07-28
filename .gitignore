@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Production builds
+dist/
+frontend/dist/
+
+# Python caches and virtualenvs
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+
+# Databases
+*.db
+*.sqlite3
+
+# Environment & Logs
+.env
+*.log
+firebase-debug.log
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
