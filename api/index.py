@@ -139,8 +139,6 @@ def get_current_user(request: Request):
 
 # --- ENDPOINTS ---
 
-@app.get("/")
-@app.get("/api")
 @app.get("/api/health")
 @app.get("/health")
 async def health_check():
