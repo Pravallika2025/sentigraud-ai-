@@ -6,6 +6,22 @@ SentinelGPT is a resilient security visualization system designed to ingest netw
 
 ---
 
+## 🎬 Live Dashboard Recording
+
+> Real-time demo of SentinelGPT in action — threat detection, live telemetry stream, security quarantine, and autonomous heuristics running live.
+
+![SentinelGPT Live Dashboard Demo](assets/demo.gif)
+
+**Dashboard features shown:**
+- 🔴 **Real-time Threat Feed** — Live `NEXUS_WEBSOCKET` streaming with auto-updating threat telemetry
+- 📊 **Threat Flow Velocity Chart** and **Sector Risk Map** tabs
+- 🛡️ **Security Quarantine** — IP blocking with `Revoke` controls
+- ⚡ **Inject Threat** — Manual threat injection for testing
+- 🔄 **Sync** — Instant data refresh
+- 📈 **Live Metrics** — PERIMETER_INCIDENTS, LEVEL_CRITICAL, TOTAL_TRAFFIC_LOGS counters updating in real time
+
+---
+
 ## 🏗️ Technical Architecture & Vercel Readiness
 
 ### 1. Vercel Serverless API Core (`api/index.py`)
