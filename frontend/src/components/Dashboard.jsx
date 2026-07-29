@@ -3,7 +3,7 @@ import {
   Shield, LayoutDashboard, Search, History, Bot, Upload, LogOut, Radio,
   Flame, RefreshCw, Trash2, AlertOctagon, AlertTriangle, Zap, Volume2, VolumeX,
   ShieldAlert, Download, Filter, X, ChevronDown, Activity, Target, Eye,
-  TrendingUp, Clock, Globe, Server, Lock, FileText
+  TrendingUp, Clock, Globe, Server, Lock, FileText, User, HelpCircle, HardDrive
 } from 'lucide-react';
 import RiskGaugeChart from './RiskGaugeChart';
 import SeverityDonutChart from './SeverityDonutChart';
@@ -12,6 +12,8 @@ import RiskTimelineChart from './RiskTimelineChart';
 import LiveAlertsFeed from './LiveAlertsFeed';
 import ThreatTable from './ThreatTable';
 import BlockedIPs from './BlockedIPs';
+import ThreatHeatmap from './ThreatHeatmap';
+import AttackTimeline from './AttackTimeline';
 
 const getApiBase = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
@@ -76,18 +78,19 @@ const saveSnapshotLocally = (logs, blocked_ips) => {
 };
 
 const computeSnapshot = (logs, blocked_ips) => {
-  const incidents = Math.max(29, logs.length);
-  const critical = Math.max(18, logs.filter(l => (l.risk_score ?? l.priority_score ?? 0) >= 75).length);
-  const high = Math.max(10, logs.filter(l => { const s = l.risk_score ?? l.priority_score ?? 0; return s >= 60 && s < 75; }).length);
+  const incidents = Math.max(logs.length, 8);
+  const critical = logs.filter(l => (l.risk_score ?? l.priority_score ?? 0) >= 75).length;
+  const high = logs.filter(l => { const s = l.risk_score ?? l.priority_score ?? 0; return s >= 60 && s < 75; }).length;
+  const medium = logs.filter(l => { const s = l.risk_score ?? l.priority_score ?? 0; return s >= 40 && s < 60; }).length;
+  const low = logs.filter(l => (l.risk_score ?? l.priority_score ?? 0) < 40).length;
   const avgScore = logs.length ? Math.round(logs.reduce((a, l) => a + (l.risk_score ?? l.priority_score ?? 0), 0) / logs.length) : 83;
   return {
-    metrics: { incidents, critical, high, avgRiskScore: Math.max(avgScore, 78), blocked: blocked_ips.length },
+    metrics: { incidents, critical, high, medium, low, avgRiskScore: avgScore, blocked: blocked_ips.length },
     logs, blocked_ips,
-    dist: { Critical: critical, High: high, Medium: Math.max(1, logs.filter(l => { const s = l.risk_score ?? l.priority_score ?? 0; return s >= 40 && s < 60; }).length), Low: logs.filter(l => (l.risk_score ?? l.priority_score ?? 0) < 40).length },
+    dist: { Critical: critical, High: high, Medium: medium, Low: low },
   };
 };
 
-// AI Remediation Engine
 const getAiRemediation = (threatType, score) => {
   const base = AI_REMEDIATIONS[threatType] || 'Investigate source IP. Correlate with SIEM logs. Apply appropriate firewall rule. Monitor for recurrence.';
   const severity = score >= 90 ? '🔴 CRITICAL — Immediate Response Required. ' : score >= 75 ? '🟠 HIGH — Response within 1 hour. ' : score >= 60 ? '🟡 MEDIUM — Review within 4 hours. ' : '🟢 LOW — Review within 24 hours. ';
@@ -98,25 +101,12 @@ const Dashboard = ({ token, logout }) => {
   const [activeTab, setActiveTab] = useState('Dashboard');
   const [socData, setSocData] = useState(() => computeSnapshot(getStoredLogs(), getStoredBlockedIPs()));
   const [streamHealth, setStreamHealth] = useState('AUTO-REFRESH ON');
-  const [lastUpdatedTime, setLastUpdatedTime] = useState(() => new Date().toLocaleTimeString());
-  const [isActionBusy, setIsActionBusy] = useState(false);
   const [alarmEnabled, setAlarmEnabled] = useState(true);
   const [activeDefectionAlert, setActiveDefectionAlert] = useState(null);
-  const [operatorName] = useState(() => localStorage.getItem('sentinel_operator') || 'admin');
-
-  // Threat Search & Filter state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterSeverity, setFilterSeverity] = useState('All');
-  const [filterType, setFilterType] = useState('All');
-  const [showFilters, setShowFilters] = useState(false);
-
-  // Analyzer
-  const [analyzerIp, setAnalyzerIp] = useState('');
-  const [analysisResult, setAnalysisResult] = useState(null);
-  const [analysisLoading, setAnalysisLoading] = useState(false);
-
-  // AI Assistant
-  const [assistantPrompt, setAssistantPrompt] = useState('');
+  const [lastUpdatedTime, setLastUpdatedTime] = useState(new Date().toLocaleTimeString());
+  
+  // AI assistant chat state
+  const [chatInput, setChatInput] = useState('');
   const [chatMessages, setChatMessages] = useState([
     { sender: 'ai', text: '🛡️ SentinelGPT Defense Core online. Ask me about any threat, IP, or attack pattern for AI-powered triage and MITRE ATT&CK mapping.' },
   ]);
@@ -124,6 +114,17 @@ const Dashboard = ({ token, logout }) => {
   // Upload
   const [uploadedFile, setUploadedFile] = useState(null);
   const [uploadAnalysis, setUploadAnalysis] = useState(null);
+
+  // Layout states
+  const [isActionBusy, setIsActionBusy] = useState(false);
+  const [dashboardLoading, setDashboardLoading] = useState(false);
+
+  // User Profile
+  const operatorName = localStorage.getItem('sentinel_operator') || 'admin';
+  const userFullName = localStorage.getItem('sentinel_user_fullname') || 'Admin User';
+  const userRole = localStorage.getItem('sentinel_user_role') || 'Administrator';
+  const userOrg = localStorage.getItem('sentinel_user_org') || 'Sentinel Security Core';
+  const userEmail = localStorage.getItem('sentinel_user_email') || 'admin@sentinel.ai';
 
   const pollTimer = useRef(null);
   const ws = useRef(null);
@@ -218,184 +219,197 @@ const Dashboard = ({ token, logout }) => {
   const handleBlockIP = async (ip) => {
     if (!ip || isActionBusy) return;
     setIsActionBusy(true);
-    setSocData(prev => {
-      const currentBlocked = prev.blocked_ips || [];
-      if (currentBlocked.some(b => b.ip === ip)) return prev;
-      const newBlock = { id: Date.now(), ip, reason: 'Manual Security Quarantine', timestamp: new Date().toISOString() };
-      const updatedBlocked = [newBlock, ...currentBlocked];
-      saveSnapshotLocally(prev.logs, updatedBlocked);
-      return computeSnapshot(prev.logs, updatedBlocked);
-    });
     try {
-      await fetch(`${API_BASE.replace(/\/$/, '')}/api/block_ip`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ip, reason: 'Manual Security Quarantine' }),
+      const endpoint = `${API_BASE.replace(/\/$/, '')}/api/block_ip`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ip, reason: 'Manual SOC Operator Quarantine' }),
       });
-    } catch { /* local saved */ }
-    finally { setIsActionBusy(false); }
+      if (res.status === 401) { logout(); return; }
+      if (res.ok) await syncSocNexus();
+    } catch {
+      // Offline fallback
+      setSocData(prev => {
+        if (prev.blocked_ips.some(b => b.ip === ip)) return prev;
+        const newBlocked = [{ id: Date.now(), ip, reason: 'Local Sandbox Quarantine', timestamp: new Date().toISOString() }, ...prev.blocked_ips];
+        saveSnapshotLocally(prev.logs, newBlocked);
+        return computeSnapshot(prev.logs, newBlocked);
+      });
+    } finally { setIsActionBusy(false); }
   };
 
   const handleUnblockIP = async (ip) => {
     if (!ip || isActionBusy) return;
     setIsActionBusy(true);
-    setSocData(prev => {
-      const updatedBlocked = (prev.blocked_ips || []).filter(b => b.ip !== ip);
-      saveSnapshotLocally(prev.logs, updatedBlocked);
-      return computeSnapshot(prev.logs, updatedBlocked);
-    });
     try {
-      await fetch(`${API_BASE.replace(/\/$/, '')}/api/unblock_ip`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      const endpoint = `${API_BASE.replace(/\/$/, '')}/api/unblock_ip`;
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ ip }),
       });
-    } catch { /* local saved */ }
-    finally { setIsActionBusy(false); }
+      if (res.status === 401) { logout(); return; }
+      if (res.ok) await syncSocNexus();
+    } catch {
+      // Offline fallback
+      setSocData(prev => {
+        const newBlocked = prev.blocked_ips.filter(b => b.ip !== ip);
+        saveSnapshotLocally(prev.logs, newBlocked);
+        return computeSnapshot(prev.logs, newBlocked);
+      });
+    } finally { setIsActionBusy(false); }
   };
 
   const handleSimulateThreat = async () => {
+    if (isActionBusy) return;
     setIsActionBusy(true);
-    playAlarmSound();
-    const threatTypes = ['Phishing Attack Vector', 'SQL Injection', 'Port Scan', 'Brute Force', 'DDoS Attempt', 'Credential Stuffing', 'Malware Payload'];
-    const randomIP = `198.51.${Math.floor(Math.random() * 190) + 10}.${Math.floor(Math.random() * 250) + 1}`;
-    const randomScore = Math.floor(Math.random() * 25) + 75;
-    const selectedType = threatTypes[Math.floor(Math.random() * threatTypes.length)];
-    const newThreat = { id: Date.now(), event_id: `TRIG-${Math.floor(Date.now() / 1000)}`, ip: randomIP, description: `${selectedType} from ${randomIP}`, threat_type: selectedType, priority_score: randomScore, risk_score: randomScore, ts: new Date().toISOString() };
-    setActiveDefectionAlert({ ip: randomIP, type: selectedType, score: randomScore, time: new Date().toLocaleTimeString(), remediation: getAiRemediation(selectedType, randomScore), mitre: MITRE_MAP[selectedType] });
-    setSocData(prev => {
-      const currentBlocked = prev.blocked_ips || [];
-      const updatedBlocked = currentBlocked.some(b => b.ip === randomIP) ? currentBlocked : [{ id: Date.now(), ip: randomIP, reason: `Auto-Defected: ${selectedType}`, timestamp: new Date().toISOString() }, ...currentBlocked];
-      const updatedLogs = [newThreat, ...(prev.logs || [])].slice(0, 30);
-      saveSnapshotLocally(updatedLogs, updatedBlocked);
-      return computeSnapshot(updatedLogs, updatedBlocked);
-    });
-    setLastUpdatedTime(new Date().toLocaleTimeString());
-    try {
-      await fetch(`${API_BASE.replace(/\/$/, '')}/api/sim_threat`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ ip: randomIP, score: randomScore }),
-      });
-    } catch { /* local fallback */ }
-    finally { setIsActionBusy(false); }
+    setDashboardLoading(true);
+    
+    // Pick random threat types
+    const threats = [
+      { type: 'Credential Stuffing', score: 88, desc: 'Brute force credential stuffing pivot detected' },
+      { type: 'DDoS Attempt', score: 94, desc: 'TCP Syn flood pivot sweep from high-risk subnet' },
+      { type: 'SQL Injection', score: 82, desc: 'Exploit signature parsed in URL payload parameter' },
+      { type: 'Port Scan', score: 72, desc: 'High-frequency Tor Exit Node perimeter sweep' },
+      { type: 'Brute Force', score: 68, desc: 'Repetitive administrator authentication spike' },
+      { type: 'Malware Payload', score: 55, desc: 'Anomalous user-agent binary script payload' },
+      { type: 'Unauthorized Access', score: 45, desc: 'Internal privilege pivots anomalous endpoint' },
+    ];
+    const picked = threats[Math.floor(Math.random() * threats.length)];
+    const simIp = `103.44.${Math.floor(Math.random() * 254) + 1}.${Math.floor(Math.random() * 254) + 1}`;
+
+    setTimeout(async () => {
+      try {
+        const endpoint = `${API_BASE.replace(/\/$/, '')}/api/sim_threat`;
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ip: simIp, type: picked.type, score: picked.score }),
+        });
+        if (res.status === 401) { logout(); return; }
+        if (res.ok) await syncSocNexus();
+      } catch {
+        // Offline simulation
+        const fakeId = `SIM-${Date.now()}`;
+        const newLog = {
+          id: fakeId,
+          event_id: fakeId,
+          ip: simIp,
+          description: picked.desc,
+          risk_score: picked.score,
+          priority_score: picked.score,
+          threat_type: picked.type,
+          ts: new Date().toISOString()
+        };
+        setSocData(prev => {
+          const updatedLogs = [newLog, ...prev.logs].slice(0, 30);
+          saveSnapshotLocally(updatedLogs, prev.blocked_ips);
+          return computeSnapshot(updatedLogs, prev.blocked_ips);
+        });
+      } finally {
+        playAlarmSound();
+        setActiveDefectionAlert({
+          type: picked.type,
+          ip: simIp,
+          score: picked.score,
+          time: new Date().toLocaleTimeString(),
+          mitre: MITRE_MAP[picked.type],
+          remediation: getAiRemediation(picked.type, picked.score)
+        });
+        setIsActionBusy(false);
+        setDashboardLoading(false);
+      }
+    }, 800);
   };
 
   const handleClearLogs = async () => {
-    if (!window.confirm('Clear all active perimeter telemetry logs?')) return;
+    if (isActionBusy) return;
     setIsActionBusy(true);
-    const emptyLogs = [];
-    const currentBlocked = socData.blocked_ips || [];
-    saveSnapshotLocally(emptyLogs, currentBlocked);
-    setSocData(computeSnapshot(emptyLogs, currentBlocked));
     try {
-      await fetch(`${API_BASE.replace(/\/$/, '')}/api/clear_logs`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
-    } catch { /* local */ }
-    finally { setIsActionBusy(false); }
+      const endpoint = `${API_BASE.replace(/\/$/, '')}/api/clear_logs`;
+      const res = await fetch(endpoint, { method: 'POST', headers: { Authorization: `Bearer ${token}` } });
+      if (res.status === 401) { logout(); return; }
+      if (res.ok) await syncSocNexus();
+    } catch {
+      setSocData(prev => {
+        saveSnapshotLocally([], []);
+        return computeSnapshot([], []);
+      });
+    } finally { setIsActionBusy(false); }
   };
 
-  // Download Report
   const handleDownloadReport = () => {
-    const report = {
-      generated: new Date().toISOString(),
-      operator: operatorName,
-      summary: socData.metrics,
-      threats: socData.logs,
-      blocked_ips: socData.blocked_ips,
-      severity_distribution: socData.dist,
-    };
-    const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `sentinel_report_${new Date().toISOString().slice(0, 10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const report = {
+        title: 'SentinelGPT Executive Incident Report',
+        generatedAt: new Date().toISOString(),
+        metrics: socData.metrics,
+        blockedIPs: socData.blocked_ips,
+        recentIncidents: socData.logs.slice(0, 10)
+      };
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sentinel_incident_report_${Date.now()}.json`;
+      a.click();
+    } catch { /* */ }
   };
 
-  const handleAnalyzeIp = async (e) => {
-    if (e) e.preventDefault();
-    if (!analyzerIp) return;
-    setAnalysisLoading(true);
-    setAnalysisResult(null);
-    await new Promise(r => setTimeout(r, 900));
-    const isHigh = Math.random() > 0.4;
-    const score = isHigh ? Math.floor(Math.random() * 20) + 75 : Math.floor(Math.random() * 30) + 15;
-    const threatType = isHigh ? ['Credential Stuffing', 'Brute Force', 'Port Scan', 'DDoS Attempt'][Math.floor(Math.random() * 4)] : 'Clean Traffic';
-    const mitre = MITRE_MAP[threatType];
-    setAnalysisResult({
-      ip: analyzerIp,
-      riskScore: score,
-      reputation: isHigh ? 'MALICIOUS / HIGH-RISK' : 'CLEAN / LOW-RISK',
-      geo: ['Frankfurt, DE', 'Amsterdam, NL', 'Moscow, RU', 'Beijing, CN', 'San Jose, US'][Math.floor(Math.random() * 5)],
-      isp: isHigh ? ['High-Freq Cloud Proxy', 'Tor Exit Node', 'Anonymous VPN', 'Bulletproof Hosting'][Math.floor(Math.random() * 4)] : 'Standard ISP',
-      threatType,
-      mitre,
-      remediation: getAiRemediation(threatType, score),
-      open_ports: isHigh ? '22, 80, 443, 8080, 3389' : '443',
-      last_seen: `${Math.floor(Math.random() * 60) + 1} minutes ago`,
-    });
-    setAnalysisLoading(false);
-  };
+  // AI Assistant Chat Submit
+  const handleChatSubmit = (e) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
 
-  // AI Assistant responses
-  const handleSendAssistant = (e) => {
-    if (e) e.preventDefault();
-    if (!assistantPrompt.trim()) return;
-    const userMsg = assistantPrompt.trim();
-    setChatMessages(prev => [...prev, { sender: 'user', text: userMsg }]);
-    setAssistantPrompt('');
-    const lower = userMsg.toLowerCase();
+    const userText = chatInput.trim();
+    setChatMessages(prev => [...prev, { sender: 'user', text: userText }]);
+    setChatInput('');
+
+    // Generate AI intelligence response
     setTimeout(() => {
-      let response = '';
-      if (lower.includes('mitre') || lower.includes('attack')) {
-        response = '📋 MITRE ATT&CK mapping active. Top threats in your environment:\n• T1110 Brute Force (Credential Access)\n• T1498 Network DoS (Impact)\n• T1190 Exploit Public App (Initial Access)\n• T1046 Network Service Discovery (Discovery)\n\nRecommend reviewing your detection rules against these TTPs.';
-      } else if (lower.includes('block') || lower.includes('quarantine') || lower.includes('ip')) {
-        const topThreat = socData.logs?.[0];
-        response = topThreat ? `🔒 Highest priority IP to block: ${topThreat.ip} (Risk: ${topThreat.risk_score ?? topThreat.priority_score}/100 — ${topThreat.threat_type}). Recommend immediate quarantine and upstream blacklisting.` : '🔒 No active threats detected. All systems nominal.';
-      } else if (lower.includes('risk') || lower.includes('score') || lower.includes('critical')) {
-        response = `📊 Current threat posture: Average Risk Score ${socData.metrics?.avgRiskScore}/100 — CRITICAL level. ${socData.metrics?.critical} critical incidents, ${socData.metrics?.high} high-severity events. ${socData.blocked_ips?.length || 0} IPs quarantined. Recommend escalation to Tier-2 SOC.`;
-      } else if (lower.includes('remediat') || lower.includes('fix') || lower.includes('stop')) {
-        response = '🛠️ Priority remediations:\n1. Enable MFA on all admin accounts\n2. Apply WAF rules for SQL injection patterns\n3. Rate-limit /api/auth endpoints (max 10 req/min)\n4. Block Tor exit node IP ranges\n5. Enable alerting on brute-force thresholds';
-      } else if (lower.includes('ddos') || lower.includes('denial')) {
-        response = '⚡ DDoS Mitigation: Activate CDN-level traffic absorption. Enable Anycast network diffusion. Apply RTBH (Remote Triggered Black Hole) routing. Contact upstream ISP for traffic scrubbing. ETA for mitigation: 3-8 minutes.';
+      let aiText = "Analyzing threat parameters. Core query processed. Resolving CVE identifiers...";
+      const query = userText.toLowerCase();
+
+      if (query.includes('ddos') || query.includes('velocity')) {
+        aiText = `🚨 DDoS / SYN Flood mitigations:\n- Apply rate limiting on iptables.\n- Forward traffic through Cloudflare CDN/WAF.\n- Enable syncookies: sysctl -w net.ipv4.tcp_syncookies=1.`;
+      } else if (query.includes('sql') || query.includes('injection')) {
+        aiText = `💉 SQL Injection remediations:\n- Mandate parameterized queries / Prepared statements.\n- Filter inputs against payloads: SELECT, UNION, '--'.\n- Implement WAF ModSecurity Rule 942100.`;
+      } else if (query.includes('credential') || query.includes('login')) {
+        aiText = `🔑 Auth Protection recommendations:\n- Lock accounts for 15 minutes after 5 failed login attempts.\n- Implement Multi-Factor Authentication (MFA).\n- Check user-agent request velocity pivots.`;
+      } else if (query.includes('scan') || query.includes('port')) {
+        aiText = `🔎 Discovery sweeps mitigation:\n- Close all non-essential ports.\n- Configure blockrules for high-velocity scans.\n- Mask internal structures using port-knocking.`;
       } else {
-        const stats = socData.metrics;
-        response = `🤖 Analysis for "${userMsg}": Current telemetry shows ${stats?.incidents} total incidents with ${stats?.critical} critical-severity threats. Average risk score: ${stats?.avgRiskScore}/100. ${socData.logs?.[0] ? `Most recent threat: ${socData.logs[0].threat_type} from ${socData.logs[0].ip}.` : ''} Autonomous defense systems are active and monitoring.`;
+        aiText = `🛡️ threat intelligence parsed:\n- Incident threat mapped to Tactic: Discovery, Technique: T1046.\n- Recommended Action: Quarantine origin IP immediately and audit system firewall settings.`;
       }
-      setChatMessages(prev => [...prev, { sender: 'ai', text: response }]);
+      setChatMessages(prev => [...prev, { sender: 'ai', text: aiText }]);
     }, 700);
   };
 
-  // File upload analysis
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
+  // File analysis handler
+  const handleFileDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer?.files[0] || e.target?.files[0];
     if (!file) return;
+
     setUploadedFile(file);
-    setUploadAnalysis(null);
+    setUploadAnalysis({ status: 'analyzing', name: file.name });
+
     setTimeout(() => {
-      const findings = Math.floor(Math.random() * 5) + 1;
+      const isMalicious = file.name.includes('virus') || file.name.includes('malware') || file.name.includes('.sh') || file.name.includes('.exe') || Math.random() > 0.6;
       setUploadAnalysis({
-        filename: file.name,
-        size: `${(file.size / 1024).toFixed(1)} KB`,
-        findings,
-        threats: Array.from({ length: findings }, (_, i) => ({
-          type: ['Malicious Macro', 'Shellcode Pattern', 'Obfuscated Script', 'C2 Beacon Signature', 'Ransomware Indicator'][i % 5],
-          severity: ['CRITICAL', 'HIGH', 'MEDIUM'][Math.floor(Math.random() * 3)],
-          offset: `0x${Math.floor(Math.random() * 65535).toString(16).toUpperCase()}`,
-        })),
-        verdict: findings > 3 ? 'MALICIOUS' : findings > 1 ? 'SUSPICIOUS' : 'CLEAN',
+        status: 'complete',
+        name: file.name,
+        size: (file.size / 1024).toFixed(2) + ' KB',
+        verdict: isMalicious ? 'MALICIOUS_PAYLOAD' : 'CLEAN',
+        score: isMalicious ? Math.floor(Math.random() * 25) + 75 : 0,
+        type: isMalicious ? 'Trojan.ShellScript' : 'Normal Text/Logs',
+        details: isMalicious 
+          ? 'Exploit signature parsed in payload segment. Mapped to MITRE T1204 (User Execution). Quarantine recommended.' 
+          : 'Heuristics validation completed. Normal ASCII/UTF-8 log file format.'
       });
     }, 1500);
   };
-
-  // Filtered logs for threat history
-  const filteredLogs = (socData.logs || []).filter(log => {
-    const score = log.risk_score ?? log.priority_score ?? 0;
-    const matchSearch = !searchQuery || log.ip?.includes(searchQuery) || log.description?.toLowerCase().includes(searchQuery.toLowerCase()) || log.threat_type?.toLowerCase().includes(searchQuery.toLowerCase()) || log.event_id?.includes(searchQuery);
-    const matchSev = filterSeverity === 'All' || (filterSeverity === 'Critical' && score >= 75) || (filterSeverity === 'High' && score >= 60 && score < 75) || (filterSeverity === 'Medium' && score >= 40 && score < 60) || (filterSeverity === 'Low' && score < 40);
-    const matchType = filterType === 'All' || log.threat_type === filterType;
-    return matchSearch && matchSev && matchType;
-  });
-
-  const uniqueThreatTypes = ['All', ...new Set((socData.logs || []).map(l => l.threat_type).filter(Boolean))];
 
   useEffect(() => {
     syncSocNexus();
@@ -410,508 +424,573 @@ const Dashboard = ({ token, logout }) => {
   if (!token) return null;
 
   const NAV_ITEMS = [
-    { id: 'Dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'Threat History', icon: History, label: 'Threat History' },
-    { id: 'Analyze Threat', icon: Target, label: 'Analyze Threat' },
-    { id: 'Security Assistant', icon: Bot, label: 'AI Assistant' },
-    { id: 'File Upload', icon: Upload, label: 'File Scanner' },
+    { id: 'Dashboard', icon: LayoutDashboard, label: 'Global Dashboard' },
+    { id: 'Threat History', icon: History, label: 'Threat Log History' },
+    { id: 'Analyze Threat', icon: Target, label: 'Threat IP Lookup' },
+    { id: 'Security Assistant', icon: Bot, label: 'AI Cyber Assistant' },
+    { id: 'File Upload', icon: Upload, label: 'Malicious File Scanner' },
   ];
 
   return (
-    <div className="flex h-screen bg-[#070a13] text-[#e0e0e0] font-sans selection:bg-[#00f2ff] selection:text-black overflow-hidden">
+    <div className="flex h-screen bg-[#05070f] text-[#d1d5db] font-sans selection:bg-[#00f2ff] selection:text-black overflow-hidden relative">
+      
+      {/* GLOBAL GLASS STYLING */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 5px;
+          height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(0, 242, 255, 0.2);
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 242, 255, 0.4);
+        }
+        .glass-box {
+          background: rgba(13, 20, 38, 0.45);
+          backdrop-filter: blur(8px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        .glow-cyan-hover:hover {
+          box-shadow: 0 0 15px rgba(0, 242, 255, 0.25);
+          border-color: rgba(0, 242, 255, 0.4);
+        }
+        @keyframes pulse-skeleton {
+          0%, 100% { opacity: 0.15; }
+          50% { opacity: 0.35; }
+        }
+        .skeleton-glowing {
+          animation: pulse-skeleton 1.5s infinite ease-in-out;
+        }
+      `}</style>
 
       {/* ── SIDEBAR ── */}
-      <aside className="w-64 bg-[#0a0d18] border-r border-white/5 flex flex-col justify-between p-4 shrink-0">
+      <aside className="w-64 bg-[#080d19]/90 border-r border-white/10 flex flex-col justify-between p-4 shrink-0 z-10 backdrop-blur-md">
         <div>
-          <div className="flex items-center gap-3 px-2 py-3 mb-6">
-            <div className="p-1.5 rounded-lg bg-[#00f2ff]/10 border border-[#00f2ff]/20">
-              <Shield size={22} className="text-[#00f2ff]" />
+          <div className="flex items-center gap-3 px-2 py-3 mb-6 border-b border-white/5">
+            <div className="p-2 rounded-xl bg-[#00f2ff]/10 border border-[#00f2ff]/30 shadow-[0_0_15px_rgba(0,242,255,0.2)]">
+              <Shield size={22} className="text-[#00f2ff] animate-pulse" />
             </div>
-            <span className="font-black text-lg tracking-tight text-white uppercase">
+            <span className="font-black text-lg tracking-wider text-white">
               SENTINEL<span className="text-[#7000ff]">GPT</span>
             </span>
           </div>
 
-          <div className="text-[9px] font-black uppercase text-gray-500 tracking-[3px] px-3 mb-2">OPERATIONS</div>
-          <nav className="space-y-0.5">
+          <div className="text-[9px] font-black uppercase text-gray-500 tracking-[3px] px-3 mb-2 font-mono">OPERATIONS</div>
+          <nav className="space-y-1">
             {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setActiveTab(id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition-all ${activeTab === id ? 'bg-[#00f2ff]/10 text-[#00f2ff] border-l-4 border-[#00f2ff]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}>
-                <Icon size={15} /> {label}
+                className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-xs font-bold transition-all ${activeTab === id ? 'bg-[#00f2ff]/15 text-white border border-[#00f2ff]/40 shadow-[0_0_12px_rgba(0,242,255,0.15)]' : 'text-gray-400 hover:text-white hover:bg-white/5 border border-transparent'}`}>
+                <Icon size={16} className={activeTab === id ? 'text-[#00f2ff]' : 'text-gray-500'} /> {label}
               </button>
             ))}
           </nav>
 
           {/* Live Status Widget */}
-          <div className="mt-6 p-3 bg-[#070a13] rounded-xl border border-white/5 space-y-2">
-            <div className="text-[9px] font-black uppercase text-gray-500 tracking-widest mb-2">SYSTEM STATUS</div>
+          <div className="mt-6 p-3.5 bg-black/45 rounded-xl border border-white/5 space-y-2">
+            <div className="text-[9px] font-black uppercase text-gray-500 tracking-widest mb-2 font-mono flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Core System Status
+            </div>
             {[
               { label: 'Threat Engine', status: 'ACTIVE', color: 'text-green-400' },
-              { label: 'Alarm System', status: alarmEnabled ? 'ARMED' : 'MUTED', color: alarmEnabled ? 'text-green-400' : 'text-gray-500' },
-              { label: 'Stream', status: streamHealth.includes('WEBSOCKET') ? 'WS LIVE' : 'POLLING', color: 'text-[#00f2ff]' },
-              { label: 'Blocked IPs', status: String(socData.blocked_ips?.length || 0), color: 'text-red-400' },
+              { label: 'Alarm System', status: alarmEnabled ? 'ARMED' : 'MUTED', color: alarmEnabled ? 'text-amber-400' : 'text-gray-500' },
+              { label: 'Stream Link', status: streamHealth.includes('WEBSOCKET') ? 'WS LIVE' : 'POLLING', color: 'text-[#00f2ff]' },
+              { label: 'Perimeter Block', status: String(socData.blocked_ips?.length || 0), color: 'text-red-400' },
             ].map(s => (
-              <div key={s.label} className="flex justify-between items-center">
-                <span className="text-[10px] text-gray-500 font-mono">{s.label}</span>
-                <span className={`text-[9px] font-black font-mono ${s.color}`}>{s.status}</span>
+              <div key={s.label} className="flex justify-between items-center text-[10px]">
+                <span className="text-gray-500 font-mono">{s.label}</span>
+                <span className={`font-black font-mono ${s.color}`}>{s.status}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-xs font-mono font-bold text-white truncate max-w-[130px]">{operatorName}@sentinel.io</span>
-            <span className="text-[9px] text-green-400 font-mono">● AUTHENTICATED</span>
+        {/* PROFILE CARD */}
+        <div className="pt-4 border-t border-white/5 flex flex-col gap-2.5">
+          <div className="flex items-center gap-2.5 bg-white/5 p-2 rounded-xl border border-white/5">
+            <div className="w-8 h-8 rounded-lg bg-[#00f2ff]/20 border border-[#00f2ff]/40 flex items-center justify-center font-mono font-bold text-white text-xs">
+              {operatorName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-bold text-white truncate">{userFullName}</span>
+              <span className="text-[9px] text-[#00f2ff] font-mono uppercase tracking-wider truncate">{userRole}</span>
+              <span className="text-[8px] text-gray-500 font-mono truncate">{userOrg}</span>
+            </div>
           </div>
-          <button onClick={logout} className="p-2 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all" title="Logout">
-            <LogOut size={15} />
+          <button onClick={logout} className="w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/25 transition-all text-xs font-mono font-bold">
+            <LogOut size={13} /> TERMINATE ACCESS
           </button>
         </div>
       </aside>
 
       {/* ── MAIN CONTENT ── */}
-      <main className="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6 bg-[#070a13]">
-
+      <main className="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-6">
+        
         {/* HEADER */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-white/5 pb-4 z-10">
           <div>
-            <h1 className="text-xl font-black uppercase text-[#00f2ff] tracking-wider flex items-center gap-2">
-              <Zap size={20} /> {activeTab === 'Dashboard' ? 'GLOBAL SOC DASHBOARD' : activeTab.toUpperCase()}
+            <h1 className="text-2xl font-black uppercase text-white tracking-wider flex items-center gap-2.5">
+              <Zap size={22} className="text-[#00f2ff]" /> 
+              {activeTab === 'Dashboard' ? 'Autonomous SOC Matrix' : activeTab.toUpperCase()}
             </h1>
-            <p className="text-[10px] font-mono text-gray-400 tracking-widest uppercase">
-              REAL-TIME THREAT INTELLIGENCE · AUTONOMOUS DEFENSE · SENTINELGPT v2.0
+            <p className="text-[10px] font-mono text-gray-400 tracking-widest uppercase mt-0.5">
+              AUTONOMOUS CYBER THREAT INGESTION & THREAT TRIAgE PLATFORM
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-[9px] font-mono text-gray-400 flex items-center gap-1.5 bg-[#0d1222] border border-white/10 px-3 py-1.5 rounded-lg">
-              <Radio size={10} className="text-[#00f2ff] animate-pulse" />
+            <div className="text-[9px] font-mono text-gray-400 flex items-center gap-2 bg-black/45 border border-white/10 px-3 py-2 rounded-xl">
+              <Radio size={11} className="text-[#00f2ff] animate-pulse" />
               <span>{streamHealth} · {lastUpdatedTime}</span>
             </div>
+            
             <button onClick={() => setAlarmEnabled(p => !p)}
-              className={`text-[10px] font-mono font-bold px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${alarmEnabled ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-white/5 text-gray-500 border-white/10'}`}>
-              {alarmEnabled ? <><Volume2 size={13} /> ALARM: ON</> : <><VolumeX size={13} /> ALARM: OFF</>}
+              className={`text-[10px] font-mono font-bold px-3 py-2 rounded-xl border transition-all flex items-center gap-1.5 ${alarmEnabled ? 'bg-red-500/15 text-red-400 border-red-500/30 shadow-[0_0_8px_rgba(239,68,68,0.1)]' : 'bg-white/5 text-gray-500 border-white/10'}`}>
+              {alarmEnabled ? <><Volume2 size={13} /> ALARM: ACTIVE</> : <><VolumeX size={13} /> ALARM: MUTED</>}
             </button>
+            
             <button onClick={handleSimulateThreat} disabled={isActionBusy}
-              className="text-[10px] font-bold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 rounded-lg hover:bg-amber-500/20 transition-all flex items-center gap-1.5 uppercase">
+              className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/15 border border-amber-500/30 px-3 py-2 rounded-xl hover:bg-amber-500/25 transition-all flex items-center gap-1.5 uppercase shadow-[0_0_8px_rgba(245,158,11,0.1)]">
               <Flame size={13} /> Inject Threat
             </button>
+            
             <button onClick={syncSocNexus} disabled={isActionBusy}
-              className="text-[10px] font-bold text-gray-300 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg hover:bg-white/10 transition-all flex items-center gap-1.5">
-              <RefreshCw size={13} /> Sync
+              className="text-[10px] font-mono font-bold text-gray-300 bg-white/5 border border-white/10 px-3 py-2 rounded-xl hover:bg-white/10 transition-all flex items-center gap-1.5">
+              <RefreshCw size={13} className={isActionBusy ? 'animate-spin' : ''} /> Sync Core
             </button>
+            
             <button onClick={handleDownloadReport}
-              className="text-[10px] font-bold text-[#00f2ff] bg-[#00f2ff]/10 border border-[#00f2ff]/20 px-3 py-1.5 rounded-lg hover:bg-[#00f2ff]/20 transition-all flex items-center gap-1.5">
-              <Download size={13} /> Report
+              className="text-[10px] font-mono font-bold text-[#00f2ff] bg-[#00f2ff]/15 border border-[#00f2ff]/30 px-3 py-2 rounded-xl hover:bg-[#00f2ff]/25 transition-all flex items-center gap-1.5 shadow-[0_0_8px_rgba(0,242,255,0.1)]">
+              <Download size={13} /> Download Report
             </button>
+            
             <button onClick={handleClearLogs} disabled={isActionBusy}
-              className="text-[10px] font-bold text-gray-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center gap-1.5">
-              <Trash2 size={13} /> Clear
+              className="text-[10px] font-mono font-bold text-gray-400 bg-white/5 border border-white/10 px-3 py-2 rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all flex items-center gap-1.5">
+              <Trash2 size={13} /> Purge Logs
             </button>
           </div>
         </header>
 
-        {/* ATTACK DEFECTION ALERT BANNER */}
+        {/* ACTIVE DEFECTION BANNER */}
         {activeDefectionAlert && (
-          <div className="mb-5 bg-red-500/10 border-2 border-red-500/30 p-4 rounded-xl animate-pulse">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <ShieldAlert size={22} className="text-[#ff0055] shrink-0 mt-0.5" />
-                <div className="font-mono text-xs space-y-1">
-                  <div>
-                    <span className="font-black text-[#ff0055] uppercase tracking-wider">🚨 ATTACK DETECTED & DEFECTED:</span>{' '}
-                    <span className="text-white font-bold">{activeDefectionAlert.type}</span> from{' '}
-                    <span className="text-[#00f2ff] font-bold">{activeDefectionAlert.ip}</span>
-                    {' '}(Risk Score: <span className="text-amber-400 font-bold">{activeDefectionAlert.score}/100</span>)
-                  </div>
-                  {activeDefectionAlert.mitre && (
-                    <div className="text-purple-400 text-[10px]">
-                      MITRE ATT&CK: <span className="font-bold">{activeDefectionAlert.mitre.technique}</span> — {activeDefectionAlert.mitre.name} ({activeDefectionAlert.mitre.tactic})
-                    </div>
-                  )}
-                  <div className="text-gray-300 text-[10px] max-w-2xl">{activeDefectionAlert.remediation}</div>
-                  <div className="text-gray-500 text-[10px]">Quarantine executed · Alert logged · {activeDefectionAlert.time}</div>
+          <div className="mb-6 bg-red-500/10 border border-red-500/30 p-4 rounded-2xl animate-pulse flex justify-between items-start gap-4">
+            <div className="flex gap-3">
+              <ShieldAlert size={24} className="text-[#ff0055] shrink-0 mt-0.5" />
+              <div className="font-mono text-xs space-y-1.5">
+                <div className="font-black text-[#ff0055] uppercase tracking-wider text-sm">
+                  ⚠️ INSTANT QUARANTINE TRIGGERED: {activeDefectionAlert.type}
                 </div>
+                <div className="text-white">
+                  Source Host: <span className="text-[#00f2ff] font-bold">{activeDefectionAlert.ip}</span> | 
+                  Calculated Risk Vector: <span className="text-amber-400 font-bold">{activeDefectionAlert.score}/100</span>
+                </div>
+                {activeDefectionAlert.mitre && (
+                  <div className="text-purple-400 text-[10px]">
+                    MITRE ATT&CK Mapping: <span className="font-bold">{activeDefectionAlert.mitre.technique}</span> — {activeDefectionAlert.mitre.name} ({activeDefectionAlert.mitre.tactic})
+                  </div>
+                )}
+                <div className="text-gray-300 text-[10px] max-w-3xl leading-relaxed">{activeDefectionAlert.remediation}</div>
               </div>
-              <button onClick={() => setActiveDefectionAlert(null)}
-                className="text-[10px] font-mono font-bold bg-white/10 text-white px-3 py-1.5 rounded border border-white/10 hover:bg-white/20 shrink-0">
-                <X size={12} />
-              </button>
             </div>
+            <button onClick={() => setActiveDefectionAlert(null)} className="p-1 rounded bg-white/10 text-white hover:bg-white/20 transition-all">
+              <X size={14} />
+            </button>
           </div>
         )}
 
-        {/* ══ TAB 1: MAIN DASHBOARD ══ */}
-        {activeTab === 'Dashboard' && (
-          <div className="space-y-5">
-
-            {/* METRIC CARDS */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-              {[
-                { label: 'Total Threats', value: socData.metrics?.incidents || 29, icon: Shield, color: '#00f2ff', sub: 'Detected' },
-                { label: 'Critical', value: socData.metrics?.critical || 18, icon: AlertOctagon, color: '#ff0055', sub: 'Score ≥75' },
-                { label: 'High Severity', value: socData.metrics?.high || 10, icon: AlertTriangle, color: '#ff7700', sub: 'Score 60-74' },
-                { label: 'Avg Risk Score', value: `${socData.metrics?.avgRiskScore || 83}`, icon: TrendingUp, color: '#7000ff', sub: '/100 avg' },
-                { label: 'Blocked IPs', value: socData.blocked_ips?.length || 2, icon: Lock, color: '#00ff88', sub: 'Quarantined' },
-              ].map(({ label, value, icon: Icon, color, sub }) => (
-                <div key={label} className="bg-[#0b0f1d] border border-white/5 p-4 rounded-xl flex justify-between items-center hover:border-white/10 transition-all">
-                  <div>
-                    <div className="text-[9px] font-mono text-gray-400 uppercase tracking-wider mb-1">{label}</div>
-                    <div className="text-2xl font-black font-mono" style={{ color }}>{value}</div>
-                    <div className="text-[9px] text-gray-600 font-mono mt-0.5">{sub}</div>
-                  </div>
-                  <Icon size={24} style={{ color, opacity: 0.7 }} />
-                </div>
+        {/* LOADING SKELETON LAYER */}
+        {dashboardLoading ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="glass-box p-4 rounded-2xl h-20 skeleton-glowing bg-white/[0.03]"></div>
               ))}
             </div>
-
-            {/* RISK ANALYSIS CHARTS */}
-            <div className="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-[3px]">
-              <Activity size={13} className="text-[#00f2ff]" /> RISK ANALYSIS
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl flex flex-col h-[260px]">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">AVERAGE RISK SCORE</h3>
-                <div className="flex-1"><RiskGaugeChart score={socData.metrics?.avgRiskScore || 83} label="CRITICAL" /></div>
-              </div>
-              <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl flex flex-col h-[260px]">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">SEVERITY DISTRIBUTION</h3>
-                <div className="flex-1"><SeverityDonutChart distribution={socData.dist} /></div>
-              </div>
-              <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl flex flex-col h-[260px]">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">THREAT TYPE BREAKDOWN</h3>
-                <div className="flex-1"><ThreatBreakdownChart logs={socData.logs || []} /></div>
-              </div>
-            </div>
-
-            {/* TIMELINE + LIVE ALERTS */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="lg:col-span-2 bg-[#0b0f1d] border border-white/5 p-5 rounded-xl flex flex-col h-[440px]">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">RISK SCORE TIMELINE (0–100)</h3>
-                  <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded">REAL-TIME SERIES</span>
-                </div>
-                <div className="flex-1"><RiskTimelineChart logs={socData.logs || []} /></div>
-              </div>
-              <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl flex flex-col h-[440px]">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> LIVE ALERTS
-                  </h3>
-                  <span className="text-[9px] font-mono text-red-400 font-bold bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
-                    {socData.logs?.length || 8} Active
-                  </span>
-                </div>
-                <div className="flex-1 overflow-hidden">
-                  <LiveAlertsFeed logs={socData.logs || []} onBlock={handleBlockIP} />
-                </div>
-              </div>
-            </div>
-
-            {/* TOP THREATS QUICK TABLE */}
-            <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <Eye size={13} className="text-[#00f2ff]" /> TOP 5 RECENT THREATS
-                </h3>
-                <button onClick={() => setActiveTab('Threat History')} className="text-[9px] font-mono text-[#00f2ff] hover:underline">View All →</button>
-              </div>
-              <div className="space-y-2">
-                {(socData.logs || []).slice(0, 5).map((log, i) => {
-                  const score = log.risk_score ?? log.priority_score ?? 0;
-                  const color = score >= 75 ? '#ff0055' : score >= 60 ? '#ff7700' : score >= 40 ? '#ffcc00' : '#00ff88';
-                  const mitre = MITRE_MAP[log.threat_type];
-                  return (
-                    <div key={log.id || i} className="flex items-center gap-3 p-2.5 bg-white/2 rounded-lg border border-white/5 hover:border-white/10 transition-all">
-                      <div className="w-1 h-8 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 text-xs font-mono">
-                          <span className="font-bold text-white truncate">{log.ip}</span>
-                          <span className="text-gray-500 truncate hidden sm:block">·</span>
-                          <span className="text-gray-400 truncate hidden sm:block">{log.threat_type}</span>
-                        </div>
-                        <div className="text-[10px] text-gray-500 truncate">{log.description}</div>
-                        {mitre && <div className="text-[9px] text-purple-400 font-mono">{mitre.technique} · {mitre.tactic}</div>}
-                      </div>
-                      <div className="shrink-0 text-right">
-                        <div className="text-sm font-black font-mono" style={{ color }}>{score}</div>
-                        <div className="text-[9px] text-gray-600 font-mono">/100</div>
-                      </div>
-                      <button onClick={() => handleBlockIP(log.ip)}
-                        className="shrink-0 text-[9px] px-2 py-1 rounded bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 font-mono font-bold transition-all">
-                        BLOCK
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="text-[10px] font-mono text-gray-600 uppercase tracking-widest pt-1 flex items-center justify-between border-t border-white/5">
-              <span>SENTINEL DEFENSE ENGINE v2.0 · AUTONOMOUS THREAT INTELLIGENCE FEED</span>
-              <span className="text-[#00f2ff]">NOMINAL INTEGRITY</span>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="glass-box p-5 rounded-2xl h-64 skeleton-glowing bg-white/[0.03]"></div>
+              ))}
             </div>
           </div>
-        )}
-
-        {/* ══ TAB 2: THREAT HISTORY ══ */}
-        {activeTab === 'Threat History' && (
-          <div className="space-y-5">
-            {/* Search & Filter Bar */}
-            <div className="bg-[#0b0f1d] border border-white/5 p-4 rounded-xl space-y-3">
-              <div className="flex gap-3 flex-wrap items-center">
-                <div className="flex-1 min-w-[200px] relative">
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
-                  <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search IP, threat type, description..."
-                    className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-mono text-white focus:outline-none focus:border-[#00f2ff] transition-all" />
-                </div>
-                <button onClick={() => setShowFilters(p => !p)}
-                  className="flex items-center gap-1.5 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-xs font-mono font-bold text-gray-300 hover:bg-white/10 transition-all">
-                  <Filter size={13} /> Filters <ChevronDown size={13} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-                </button>
-                <button onClick={handleDownloadReport}
-                  className="flex items-center gap-1.5 px-4 py-2.5 bg-[#00f2ff]/10 border border-[#00f2ff]/20 rounded-xl text-xs font-mono font-bold text-[#00f2ff] hover:bg-[#00f2ff]/20 transition-all">
-                  <Download size={13} /> Download Report
-                </button>
-                <div className="text-[10px] font-mono text-gray-500 px-3 py-2.5 bg-white/3 rounded-xl border border-white/5">
-                  {filteredLogs.length} / {socData.logs?.length || 0} threats
-                </div>
-              </div>
-
-              {showFilters && (
-                <div className="flex gap-4 flex-wrap pt-2 border-t border-white/5">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Severity</label>
-                    <select value={filterSeverity} onChange={e => setFilterSeverity(e.target.value)}
-                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#00f2ff]">
-                      {['All', 'Critical', 'High', 'Medium', 'Low'].map(s => <option key={s} value={s} className="bg-[#0b0f1d]">{s}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Threat Type</label>
-                    <select value={filterType} onChange={e => setFilterType(e.target.value)}
-                      className="bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-[#00f2ff]">
-                      {uniqueThreatTypes.map(t => <option key={t} value={t} className="bg-[#0b0f1d]">{t}</option>)}
-                    </select>
-                  </div>
-                  <button onClick={() => { setSearchQuery(''); setFilterSeverity('All'); setFilterType('All'); setShowFilters(false); }}
-                    className="self-end px-3 py-1.5 text-[10px] font-mono text-gray-400 hover:text-white bg-white/5 rounded-lg border border-white/10 transition-all flex items-center gap-1">
-                    <X size={11} /> Clear
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Threat Table */}
-            <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl">
-              <h2 className="text-sm font-black uppercase text-white mb-4 flex items-center gap-2">
-                <History className="text-[#00f2ff]" size={16} /> Historical Threat Telemetry
-              </h2>
-              <ThreatTable logs={filteredLogs} onBlock={handleBlockIP} />
-            </div>
-
-            {/* Blocked IPs */}
-            <div className="bg-[#0b0f1d] border border-white/5 p-5 rounded-xl">
-              <h2 className="text-sm font-black uppercase text-white mb-4 flex items-center gap-2">
-                <Lock className="text-red-400" size={16} /> Active Security Quarantines ({socData.blocked_ips?.length || 0})
-              </h2>
-              <BlockedIPs blocked={socData.blocked_ips || []} onUnblock={handleUnblockIP} />
-            </div>
-          </div>
-        )}
-
-        {/* ══ TAB 3: ANALYZE THREAT ══ */}
-        {activeTab === 'Analyze Threat' && (
-          <div className="space-y-5 max-w-4xl">
-            <div className="bg-[#0b0f1d] border border-white/5 p-6 rounded-xl space-y-4">
-              <h2 className="text-base font-black uppercase text-white flex items-center gap-2">
-                <Target className="text-[#00f2ff]" size={18} /> IP Threat Intelligence Lookup
-              </h2>
-              <p className="text-xs text-gray-400 font-mono">Enter an IP address for full AI-powered threat analysis with MITRE ATT&CK mapping and remediation guidance.</p>
-              <form onSubmit={handleAnalyzeIp} className="flex gap-3">
-                <input value={analyzerIp} onChange={e => setAnalyzerIp(e.target.value)} placeholder="Enter IP address (e.g. 185.220.101.5)"
-                  className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white focus:outline-none focus:border-[#00f2ff]" />
-                <button type="submit" disabled={analysisLoading}
-                  className="bg-[#00f2ff] text-black font-bold px-6 py-3 rounded-xl hover:bg-[#00d8e6] transition-all font-mono text-xs uppercase flex items-center gap-2">
-                  {analysisLoading ? <><RefreshCw size={14} className="animate-spin" /> Scanning...</> : <><Search size={14} /> Analyze</>}
-                </button>
-              </form>
-              {/* Quick-scan example IPs */}
-              <div className="flex gap-2 flex-wrap">
-                <span className="text-[9px] font-mono text-gray-500 uppercase">Quick scan:</span>
-                {['185.220.101.5', '103.44.20.12', '194.26.29.114', '8.8.8.8'].map(ip => (
-                  <button key={ip} onClick={() => setAnalyzerIp(ip)}
-                    className="text-[9px] font-mono text-[#00f2ff] border border-[#00f2ff]/20 px-2 py-0.5 rounded hover:bg-[#00f2ff]/10 transition-all">{ip}</button>
-                ))}
-              </div>
-            </div>
-
-            {analysisResult && (
-              <div className="bg-[#0b0f1d] border border-white/10 p-6 rounded-xl space-y-4">
-                <div className="flex justify-between items-center flex-wrap gap-3">
-                  <div className="flex items-center gap-3">
-                    <Globe size={20} className={analysisResult.riskScore >= 75 ? 'text-red-400' : 'text-green-400'} />
-                    <span className="font-mono text-base font-bold text-white">{analysisResult.ip}</span>
-                  </div>
-                  <span className={`px-4 py-1.5 rounded-full text-xs font-black font-mono border ${analysisResult.riskScore >= 75 ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30'}`}>
-                    RISK: {analysisResult.riskScore}/100 · {analysisResult.verdict || (analysisResult.riskScore >= 75 ? 'MALICIOUS' : 'CLEAN')}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs font-mono">
+        ) : (
+          <>
+            {/* ══ TAB 1: MAIN SOC DASHBOARD ══ */}
+            {activeTab === 'Dashboard' && (
+              <div className="space-y-6">
+                
+                {/* 7 TOP STATS KPI CARDS */}
+                <div className="grid grid-cols-2 lg:grid-cols-7 gap-4">
                   {[
-                    { k: 'Reputation', v: analysisResult.reputation, c: analysisResult.riskScore >= 75 ? 'text-red-400' : 'text-green-400' },
-                    { k: 'Geo Location', v: analysisResult.geo },
-                    { k: 'ISP / Network', v: analysisResult.isp },
-                    { k: 'Threat Class', v: analysisResult.threatType },
-                    { k: 'Open Ports', v: analysisResult.open_ports },
-                    { k: 'Last Seen', v: analysisResult.last_seen },
-                  ].map(({ k, v, c }) => (
-                    <div key={k} className="bg-white/3 p-3 rounded-lg border border-white/5">
-                      <div className="text-gray-500 text-[9px] uppercase tracking-wider mb-1">{k}</div>
-                      <div className={`font-bold ${c || 'text-white'}`}>{v}</div>
+                    { label: 'Total Threats', value: socData.metrics?.incidents || 0, icon: Shield, color: '#e2e8f0', sub: 'Aggregated Logs' },
+                    { label: 'Critical', value: socData.metrics?.critical || 0, icon: AlertOctagon, color: '#ff0055', sub: 'Risk ≥ 75' },
+                    { label: 'High', value: socData.metrics?.high || 0, icon: AlertTriangle, color: '#ff7700', sub: 'Risk 60–74' },
+                    { label: 'Medium', value: socData.metrics?.medium || 0, icon: ShieldAlert, color: '#eab308', sub: 'Risk 40–59' },
+                    { label: 'Low', value: socData.metrics?.low || 0, icon: Activity, color: '#3b82f6', sub: 'Risk < 40' },
+                    { label: 'Avg Risk', value: `${socData.metrics?.avgRiskScore || 0}%`, icon: TrendingUp, color: '#8b5cf6', sub: 'Global index' },
+                    { label: 'Blocked IPs', value: socData.metrics?.blocked || 0, icon: Lock, color: '#10b981', sub: 'Quarantined' }
+                  ].map(({ label, value, icon: Icon, color, sub }) => (
+                    <div key={label} className="glass-box p-4 rounded-2xl flex justify-between items-center transition-all glow-cyan-hover">
+                      <div className="min-w-0">
+                        <div className="text-[9px] font-mono text-gray-500 uppercase tracking-wider truncate">{label}</div>
+                        <div className="text-2xl font-black font-mono mt-0.5" style={{ color }}>{value}</div>
+                        <div className="text-[8px] text-gray-600 font-mono truncate">{sub}</div>
+                      </div>
+                      <Icon size={18} className="shrink-0 opacity-50 ml-1.5" style={{ color }} />
                     </div>
                   ))}
                 </div>
 
-                {analysisResult.mitre && (
-                  <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
-                    <div className="text-[10px] font-black uppercase text-purple-400 tracking-widest mb-2 flex items-center gap-2">
-                      <Shield size={12} /> MITRE ATT&CK MAPPING
-                    </div>
-                    <div className="grid grid-cols-3 gap-3 text-xs font-mono">
-                      <div><div className="text-gray-500 text-[9px] mb-1">TECHNIQUE</div><div className="text-white font-bold">{analysisResult.mitre.technique}</div></div>
-                      <div><div className="text-gray-500 text-[9px] mb-1">NAME</div><div className="text-white font-bold">{analysisResult.mitre.name}</div></div>
-                      <div><div className="text-gray-500 text-[9px] mb-1">TACTIC</div><div className="text-purple-300 font-bold">{analysisResult.mitre.tactic}</div></div>
+                {/* 3 SIDE BY SIDE CHARTS */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[280px]">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <Activity size={12} className="text-[#00f2ff]" /> Average Risk Score Dial
+                    </h3>
+                    <div className="flex-1 min-h-0">
+                      <RiskGaugeChart score={socData.metrics?.avgRiskScore || 83} label={socData.metrics?.avgRiskScore >= 75 ? 'CRITICAL' : socData.metrics?.avgRiskScore >= 60 ? 'HIGH' : 'MEDIUM'} />
                     </div>
                   </div>
-                )}
 
-                <div className="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl">
-                  <div className="text-[10px] font-black uppercase text-amber-400 tracking-widest mb-2 flex items-center gap-2">
-                    <Bot size={12} /> AI REMEDIATION RECOMMENDATION
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[280px]">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <Target size={12} className="text-[#00f2ff]" /> Severity Distribution
+                    </h3>
+                    <div className="flex-1 min-h-0">
+                      <SeverityDonutChart distribution={socData.dist} />
+                    </div>
                   </div>
-                  <p className="text-xs font-mono text-gray-300 leading-relaxed">{analysisResult.remediation}</p>
+
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[280px]">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <Flame size={12} className="text-[#00f2ff]" /> Threat Type Breakdown
+                    </h3>
+                    <div className="flex-1 min-h-0">
+                      <ThreatBreakdownChart logs={socData.logs || []} />
+                    </div>
+                  </div>
                 </div>
 
-                {analysisResult.riskScore >= 75 && (
-                  <button onClick={() => handleBlockIP(analysisResult.ip)}
-                    className="w-full py-3 bg-red-500/20 border border-red-500/30 text-red-400 font-black font-mono text-xs uppercase rounded-xl hover:bg-red-500/30 transition-all flex items-center justify-center gap-2">
-                    <Lock size={14} /> QUARANTINE THIS IP IMMEDIATELY
-                  </button>
-                )}
+                {/* TIMELINE RISK GRAPH */}
+                <div className="glass-box p-5 rounded-2xl flex flex-col h-[320px]">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <Clock size={12} className="text-[#00f2ff]" /> Incident Risk Score Timeline
+                    </h3>
+                    <span className="text-[9px] font-mono text-[#00f2ff] bg-[#00f2ff]/10 px-2 py-0.5 rounded border border-[#00f2ff]/20">REAL-TIME INGESTION SERIES</span>
+                  </div>
+                  <div className="flex-1 min-h-0">
+                    <RiskTimelineChart logs={socData.logs || []} />
+                  </div>
+                </div>
+
+                {/* LOWER THREE COLUMN DETAIL SECTION */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  
+                  {/* COLUMN 1: LIVE ALERTS FEED */}
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[480px]">
+                    <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-1.5 border-b border-white/5 pb-2">
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-ping shrink-0" /> Live Threat Feed
+                    </h3>
+                    <div className="flex-1 min-h-0">
+                      <LiveAlertsFeed logs={socData.logs} onBlock={handleBlockIP} />
+                    </div>
+                  </div>
+
+                  {/* COLUMN 2: HEATMAP NODE MATRIX + TIMELINE */}
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[480px] justify-between gap-4">
+                    <div className="flex-1 flex flex-col min-h-0 border-b border-white/5 pb-4">
+                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <Globe size={12} className="text-[#00f2ff]" /> Perimeter Heatmap
+                      </h3>
+                      <div className="flex-1 min-h-0">
+                        <ThreatHeatmap logs={socData.logs} />
+                      </div>
+                    </div>
+                    <div className="flex-1 flex flex-col min-h-0 pt-2">
+                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <History size={12} className="text-[#00f2ff]" /> Attack Chrono Timeline
+                      </h3>
+                      <div className="flex-1 min-h-0">
+                        <AttackTimeline logs={socData.logs} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* COLUMN 3: AI RECOMMENDATIONS & CORE CONTROLS */}
+                  <div className="glass-box p-5 rounded-2xl flex flex-col h-[480px] justify-between gap-4">
+                    <div className="flex-1 flex flex-col min-h-0 border-b border-white/5 pb-4">
+                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                        <Bot size={12} className="text-[#00f2ff]" /> AI Remediation Assistant
+                      </h3>
+                      <div className="bg-black/40 rounded-xl p-4 border border-white/5 flex-1 overflow-y-auto custom-scrollbar font-mono text-[11px] leading-relaxed space-y-3">
+                        {socData.logs && socData.logs.length > 0 ? (
+                          <div>
+                            <div className="text-white font-bold mb-1 border-b border-white/10 pb-1 flex items-center gap-1.5">
+                              <ShieldAlert size={12} className="text-red-400" /> Remediating: {socData.logs[0].threat_type || socData.logs[0].description}
+                            </div>
+                            <div className="text-gray-300">
+                              {getAiRemediation(socData.logs[0].threat_type || socData.logs[0].description, socData.logs[0].risk_score || socData.logs[0].priority_score)}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-gray-500 text-center py-6">
+                            No threat signals active. Core security metrics nominal.
+                          </div>
+                        )}
+                        <div className="pt-2 text-[10px] text-gray-500 border-t border-white/5">
+                          💡 SentinelGPT recommends enforcing strict geo-blocking firewall policies on Tor exit nodes to mitigate discoveries.
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col min-h-0 gap-2">
+                      <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                        <Server size={12} className="text-[#00f2ff]" /> Core Quick Actions
+                      </h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button onClick={handleSimulateThreat} className="py-2.5 px-3 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/25 rounded-xl text-[10px] font-mono font-bold transition-all uppercase">
+                          ⚡ Inject Test
+                        </button>
+                        <button onClick={handleDownloadReport} className="py-2.5 px-3 bg-[#00f2ff]/10 hover:bg-[#00f2ff]/20 text-[#00f2ff] border border-[#00f2ff]/25 rounded-xl text-[10px] font-mono font-bold transition-all uppercase">
+                          📂 Gen Report
+                        </button>
+                        <button onClick={handleClearLogs} className="py-2.5 px-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 rounded-xl text-[10px] font-mono font-bold transition-all uppercase col-span-2">
+                          🔴 Purge Threat Matrices
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
             )}
-          </div>
-        )}
 
-        {/* ══ TAB 4: AI SECURITY ASSISTANT ══ */}
-        {activeTab === 'Security Assistant' && (
-          <div className="max-w-4xl h-[600px] flex flex-col bg-[#0b0f1d] border border-white/5 p-6 rounded-xl">
-            <div className="flex items-center gap-3 pb-4 border-b border-white/5 mb-4">
-              <div className="p-2 rounded-xl bg-[#00f2ff]/10 border border-[#00f2ff]/20">
-                <Bot size={20} className="text-[#00f2ff]" />
-              </div>
-              <div>
-                <h2 className="text-sm font-black uppercase text-white">SentinelGPT AI Assistant</h2>
-                <p className="text-[9px] font-mono text-gray-400">Threat triage · MITRE mapping · Remediation guidance · Risk analysis</p>
-              </div>
-              <div className="ml-auto flex gap-2 flex-wrap">
-                {['What are the top risks?', 'MITRE ATT&CK tactics?', 'How to remediate brute force?', 'Block recommendations'].map(q => (
-                  <button key={q} onClick={() => { setAssistantPrompt(q); }}
-                    className="text-[9px] font-mono text-gray-400 border border-white/10 px-2 py-1 rounded hover:bg-white/5 hover:text-white transition-all">
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
-              {chatMessages.map((msg, idx) => (
-                <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  {msg.sender === 'ai' && (
-                    <div className="w-6 h-6 rounded-full bg-[#00f2ff]/20 border border-[#00f2ff]/30 flex items-center justify-center shrink-0 mt-0.5 mr-2">
-                      <Bot size={12} className="text-[#00f2ff]" />
-                    </div>
-                  )}
-                  <div className={`max-w-xl p-3.5 rounded-xl font-mono text-xs whitespace-pre-line ${msg.sender === 'user' ? 'bg-[#00f2ff]/10 text-white border border-[#00f2ff]/30 rounded-br-none' : 'bg-white/5 text-gray-200 border border-white/10 rounded-bl-none'}`}>
-                    {msg.text}
+            {/* ══ TAB 2: THREAT LOG HISTORY ══ */}
+            {activeTab === 'Threat History' && (
+              <div className="space-y-6">
+                <div className="glass-box p-5 rounded-2xl">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-black text-white uppercase tracking-wider font-mono">Historical Incident Database</h3>
+                    <button onClick={handleDownloadReport} className="text-xs bg-[#00f2ff]/10 hover:bg-[#00f2ff]/20 border border-[#00f2ff]/20 text-[#00f2ff] font-bold px-3 py-1.5 rounded-xl transition-all font-mono uppercase">
+                      Export Logs
+                    </button>
                   </div>
+                  <ThreatTable logs={socData.logs || []} onBlock={handleBlockIP} />
                 </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-            <form onSubmit={handleSendAssistant} className="flex gap-3 pt-4 border-t border-white/5 mt-3">
-              <input value={assistantPrompt} onChange={e => setAssistantPrompt(e.target.value)}
-                placeholder="Ask about threats, MITRE tactics, remediation steps, risk analysis..."
-                className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-sm font-mono text-white focus:outline-none focus:border-[#00f2ff]" />
-              <button type="submit" className="bg-[#00f2ff] text-black font-bold px-5 py-3 rounded-xl hover:bg-[#00d8e6] transition-all font-mono text-xs uppercase flex items-center gap-2">
-                <Zap size={14} /> Send
-              </button>
-            </form>
-          </div>
-        )}
-
-        {/* ══ TAB 5: FILE SCANNER ══ */}
-        {activeTab === 'File Upload' && (
-          <div className="space-y-5 max-w-3xl">
-            <div className="bg-[#0b0f1d] border-2 border-dashed border-white/10 hover:border-[#00f2ff]/40 p-10 rounded-xl text-center space-y-4 transition-all">
-              <div className="p-4 rounded-full bg-[#00f2ff]/10 border border-[#00f2ff]/20 w-fit mx-auto">
-                <Upload size={36} className="text-[#00f2ff]" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-white uppercase font-mono">Upload File for AI Threat Analysis</h3>
-                <p className="text-xs text-gray-400 font-mono mt-1">Supports .pcap, .log, .exe, .dll, .pdf, .docx — Static & behavioral heuristic scan</p>
-              </div>
-              <label className="cursor-pointer inline-block bg-[#00f2ff] text-black font-bold text-xs px-6 py-3 rounded-xl hover:bg-[#00d8e6] transition-all font-mono uppercase">
-                Select File to Scan
-                <input type="file" className="hidden" onChange={handleFileUpload} />
-              </label>
-              {uploadedFile && !uploadAnalysis && (
-                <div className="flex items-center justify-center gap-2 text-xs font-mono text-gray-400">
-                  <RefreshCw size={14} className="animate-spin text-[#00f2ff]" />
-                  Scanning {uploadedFile.name}...
+                
+                <div className="glass-box p-5 rounded-2xl">
+                  <h3 className="text-sm font-black text-white uppercase tracking-wider mb-4 font-mono">Active Perimeter Quarantine List</h3>
+                  <BlockedIPs blocked={socData.blocked_ips || []} onUnblock={handleUnblockIP} />
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            {uploadAnalysis && (
-              <div className="bg-[#0b0f1d] border border-white/10 p-6 rounded-xl space-y-4">
-                <div className="flex justify-between items-center flex-wrap gap-3">
-                  <div className="flex items-center gap-3">
-                    <FileText size={20} className="text-gray-400" />
-                    <div>
-                      <div className="font-mono text-sm font-bold text-white">{uploadAnalysis.filename}</div>
-                      <div className="text-[10px] text-gray-500 font-mono">{uploadAnalysis.size}</div>
+            {/* ══ TAB 3: THREAT IP LOOKUP ══ */}
+            {activeTab === 'Analyze Threat' && (
+              <div className="space-y-6">
+                <div className="glass-box p-8 rounded-2xl max-w-2xl mx-auto space-y-6">
+                  <div className="text-center space-y-2">
+                    <h2 className="text-lg font-black text-white uppercase tracking-wider font-mono">Threat Intelligence IP Lookup</h2>
+                    <p className="text-xs text-gray-400 max-w-md mx-auto">
+                      Query the SentinelGPT database to retrieve MITRE ATT&CK tactic associations, threat descriptions, and risk scoring.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-[#00f2ff] font-mono"
+                      placeholder="Enter IP (e.g. 185.220.101.5)"
+                      id="threatIpInput"
+                    />
+                    <button
+                      onClick={() => {
+                        const val = document.getElementById('threatIpInput').value.trim();
+                        if (!val) return;
+                        const match = socData.logs.find(l => l.ip === val);
+                        if (match) {
+                          setChatMessages(prev => [
+                            ...prev,
+                            { sender: 'user', text: `Lookup threat intelligence for IP: ${val}` },
+                            { sender: 'ai', text: `🔍 Threat query response:\n- Event: ${match.threat_type || match.description}\n- Priority Score: ${match.risk_score || match.priority_score}/100\n- Status: QUARANTINED\n- MITRE ATT&CK: ${MITRE_MAP[match.threat_type || match.description]?.technique || 'T1046'} (${MITRE_MAP[match.threat_type || match.description]?.tactic || 'Discovery'})` }
+                          ]);
+                          setActiveTab('Security Assistant');
+                        } else {
+                          setError(`IP address ${val} is not cataloged in current threat intelligence feed.`);
+                          setTimeout(() => setError(''), 4000);
+                        }
+                      }}
+                      className="bg-[#00f2ff] hover:bg-[#00d8e6] text-black font-extrabold px-6 py-3 rounded-xl text-xs font-mono tracking-wider transition-all active:scale-95 uppercase shadow-[0_0_12px_rgba(0,242,255,0.2)]"
+                    >
+                      Query Matrix
+                    </button>
+                  </div>
+
+                  <div className="border-t border-white/5 pt-4 space-y-3">
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest font-mono">Active Threat Indicators</span>
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {socData.logs.slice(0, 4).map(l => (
+                        <button
+                          key={l.id}
+                          onClick={() => document.getElementById('threatIpInput').value = l.ip}
+                          className="flex justify-between items-center p-3 bg-white/[0.01] hover:bg-white/5 border border-white/5 rounded-xl transition-all text-left"
+                        >
+                          <span className="text-xs font-mono font-bold text-white">{l.ip}</span>
+                          <span className="text-[9px] font-mono text-red-400 font-black">{l.risk_score || l.priority_score} RISK</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
-                  <span className={`px-4 py-1.5 rounded-full text-xs font-black font-mono border ${uploadAnalysis.verdict === 'MALICIOUS' ? 'bg-red-500/20 text-red-400 border-red-500/30' : uploadAnalysis.verdict === 'SUSPICIOUS' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30'}`}>
-                    VERDICT: {uploadAnalysis.verdict}
-                  </span>
                 </div>
+              </div>
+            )}
 
-                {uploadAnalysis.findings > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-[10px] font-black uppercase text-gray-400 tracking-widest">DETECTED INDICATORS ({uploadAnalysis.findings})</div>
-                    {uploadAnalysis.threats.map((t, i) => (
-                      <div key={i} className={`flex items-center justify-between p-3 rounded-lg border ${t.severity === 'CRITICAL' ? 'bg-red-500/10 border-red-500/20' : t.severity === 'HIGH' ? 'bg-amber-500/10 border-amber-500/20' : 'bg-yellow-500/10 border-yellow-500/20'}`}>
-                        <div>
-                          <div className="text-xs font-bold font-mono text-white">{t.type}</div>
-                          <div className="text-[9px] font-mono text-gray-400">Offset: {t.offset}</div>
+            {/* ══ TAB 4: AI Cyber Assistant ══ */}
+            {activeTab === 'Security Assistant' && (
+              <div className="space-y-6 flex-1 flex flex-col min-h-0">
+                <div className="glass-box p-5 rounded-2xl flex-1 flex flex-col min-h-0 justify-between gap-4">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Bot className="text-[#00f2ff]" size={20} />
+                      <span className="text-xs font-black uppercase text-white tracking-widest font-mono">SentinelGPT conversational AI</span>
+                    </div>
+                    <span className="text-[9px] font-mono text-green-400">● Core AI Engine: ONLINE</span>
+                  </div>
+
+                  {/* CHAT MESSAGES DISPLAY */}
+                  <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4 font-mono text-xs">
+                    {chatMessages.map((msg, i) => (
+                      <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`p-4 rounded-2xl max-w-xl leading-relaxed whitespace-pre-wrap border ${
+                          msg.sender === 'user' 
+                            ? 'bg-[#00f2ff]/10 text-white border-[#00f2ff]/25' 
+                            : 'bg-[#0d1426] text-gray-200 border-white/5'
+                        }`}>
+                          <div className="text-[8px] text-gray-500 uppercase tracking-widest font-bold mb-1">
+                            {msg.sender === 'user' ? 'Operator Command' : 'Sentinel AI Output'}
+                          </div>
+                          {msg.text}
                         </div>
-                        <span className={`text-[9px] font-black font-mono px-2 py-0.5 rounded ${t.severity === 'CRITICAL' ? 'text-red-400' : t.severity === 'HIGH' ? 'text-amber-400' : 'text-yellow-400'}`}>
-                          {t.severity}
-                        </span>
                       </div>
                     ))}
+                    <div ref={chatEndRef} />
                   </div>
-                )}
+
+                  {/* CHAT INPUT FORM */}
+                  <form onSubmit={handleChatSubmit} className="flex gap-2 border-t border-white/5 pt-3">
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      className="flex-1 bg-black/45 border border-white/10 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-[#00f2ff] font-mono"
+                      placeholder="Ask about a threat vector, mitigation step, or command query..."
+                    />
+                    <button
+                      type="submit"
+                      className="bg-[#00f2ff] hover:bg-[#00d8e6] text-black font-extrabold px-6 py-3 rounded-xl text-xs font-mono tracking-wider uppercase shadow-[0_0_12px_rgba(0,242,255,0.2)] active:scale-95"
+                    >
+                      Transmit
+                    </button>
+                  </form>
+                </div>
               </div>
             )}
-          </div>
+
+            {/* ══ TAB 5: FILE SCANNER ══ */}
+            {activeTab === 'File Upload' && (
+              <div className="space-y-6 max-w-3xl mx-auto">
+                <div className="glass-box p-8 rounded-2xl space-y-6">
+                  <div className="text-center space-y-2">
+                    <h2 className="text-lg font-black text-white uppercase tracking-wider font-mono">Payload Heuristics File Scanner</h2>
+                    <p className="text-xs text-gray-400 max-w-md mx-auto">
+                      Drag and drop network log files, scripts, or executables to verify static hash patterns and trace threats.
+                    </p>
+                  </div>
+
+                  {/* DROPZONE */}
+                  <div
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={handleFileDrop}
+                    className="border-2 border-dashed border-white/10 hover:border-[#00f2ff]/30 rounded-2xl p-10 flex flex-col items-center justify-center gap-3 bg-black/20 hover:bg-black/40 transition-all cursor-pointer relative"
+                  >
+                    <input
+                      type="file"
+                      onChange={handleFileDrop}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                      id="fileScannerInput"
+                    />
+                    <Upload size={36} className="text-gray-500 animate-bounce" />
+                    <span className="text-xs font-mono text-gray-300">
+                      Drag files here or click to browse local storage
+                    </span>
+                    <span className="text-[10px] text-gray-600 font-mono">
+                      Max file size: 10 MB (Log/ASCII format preferred)
+                    </span>
+                  </div>
+
+                  {/* ANALYSIS RESULTS */}
+                  {uploadAnalysis && (
+                    <div className="border border-white/10 rounded-2xl p-5 bg-[#0a0f1d] space-y-4">
+                      <div className="flex justify-between items-center border-b border-white/5 pb-2.5">
+                        <span className="text-xs font-mono font-bold text-white truncate max-w-[200px]">
+                          📂 File: {uploadAnalysis.name}
+                        </span>
+                        <span className={`text-[10px] font-mono font-black px-2.5 py-0.5 rounded border ${
+                          uploadAnalysis.status === 'analyzing'
+                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                            : uploadAnalysis.verdict === 'CLEAN'
+                              ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                              : 'bg-red-500/10 text-red-400 border-red-500/20 shadow-[0_0_8px_rgba(239,68,68,0.15)]'
+                        }`}>
+                          {uploadAnalysis.status === 'analyzing' ? 'SCANNING...' : uploadAnalysis.verdict}
+                        </span>
+                      </div>
+
+                      {uploadAnalysis.status === 'analyzing' ? (
+                        <div className="space-y-3">
+                          <div className="h-4 bg-white/5 rounded skeleton-glowing"></div>
+                          <div className="h-3 bg-white/5 rounded skeleton-glowing w-2/3"></div>
+                        </div>
+                      ) : (
+                        <div className="font-mono text-xs space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">File Size:</span>
+                            <span className="text-white">{uploadAnalysis.size}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Payload Type:</span>
+                            <span className="text-white">{uploadAnalysis.type}</span>
+                          </div>
+                          {uploadAnalysis.verdict !== 'CLEAN' && (
+                            <div className="flex justify-between">
+                              <span className="text-gray-500">Threat Risk Score:</span>
+                              <span className="text-red-400 font-bold">{uploadAnalysis.score}/100</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col gap-1 border-t border-white/5 pt-2 mt-2">
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider">Analysis Details:</span>
+                            <span className="text-gray-300 text-[11px] leading-relaxed bg-black/40 p-2.5 rounded-lg border border-white/5">
+                              {uploadAnalysis.details}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              </div>
+            )}
+          </>
         )}
 
       </main>
+
     </div>
   );
 };
