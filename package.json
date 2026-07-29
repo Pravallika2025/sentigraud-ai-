@@ -1,0 +1,21 @@
+{
+  "name": "sentinelgpt-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SentinelGPT - Autonomous Cyber Defense Platform",
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "start": "npm --prefix frontend run preview",
+    "lint": "npm --prefix frontend run lint"
+  },
+  "keywords": [
+    "cybersecurity",
+    "fastapi",
+    "react",
+    "vercel",
+    "soc-dashboard"
+  ],
+  "author": "SentinelGPT Team",
+  "license": "MIT"
+}

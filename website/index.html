@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelGPT | Autonomous AI Cyber Defense</title>
+    <meta name="description" content="A fault-tolerant, real-time cybersecurity monitoring platform built with AI to ingest network traffic and automate perimeter response.">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="container nav-container">
+            <div class="logo">
+                <i data-lucide="shield-alert" class="logo-icon"></i>
+                <span>Sentinel<strong>GPT</strong></span>
+            </div>
+            <nav class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#architecture">Architecture</a>
+                <a href="#dashboard">Dashboard</a>
+            </nav>
+            <a href="https://github.com" class="btn btn-outline" target="_blank">View on GitHub</a>
+        </div>
+    </header>
+
+    <section class="hero" id="home">
+        <div class="hero-bg">
+            <div class="glow-orb orb-1"></div>
+            <div class="glow-orb orb-2"></div>
+        </div>
+        <div class="container hero-content">
+            <div class="badge fade-in-up">Next-Gen Security</div>
+            <h1 class="fade-in-up delay-1">Autonomous Matrix Defense</h1>
+            <p class="fade-in-up delay-2">A fault-tolerant, real-time cybersecurity monitoring platform built to ingest network traffic metadata, identify anomalous threat patterns using adaptive heuristics, and automate perimeter response.</p>
+            <div class="hero-actions fade-in-up delay-3">
+                <a href="#features" class="btn btn-primary">Explore Features <i data-lucide="arrow-right"></i></a>
+                <a href="#dashboard" class="btn btn-secondary">Live Demo <i data-lucide="activity"></i></a>
+            </div>
+            <div class="hero-visual fade-in-up delay-4">
+                <div class="glass-panel">
+                    <div class="panel-header">
+                        <div class="dots"><span></span><span></span><span></span></div>
+                        <div class="panel-title">Threat Detection Feed</div>
+                    </div>
+                    <div class="panel-body" id="hero-feed">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header fade-in-up">
+                <h2>Core Functionality</h2>
+                <p>Built for the modern threat landscape, SentinelGPT provides unparalleled visibility and autonomous response.</p>
+            </div>
+            <div class="grid features-grid">
+                <div class="feature-card glass fade-in-up delay-1">
+                    <div class="icon-wrapper"><i data-lucide="eye"></i></div>
+                    <h3>Autonomous Monitoring</h3>
+                    <p>Background workers detect and log network events in real-time without manual intervention, providing 24/7 coverage.</p>
+                </div>
+                <div class="feature-card glass fade-in-up delay-2">
+                    <div class="icon-wrapper"><i data-lucide="zap"></i></div>
+                    <h3>Incident Response</h3>
+                    <p>Automated blocking of high-risk IP addresses using adaptive heuristics and moving average windowing.</p>
+                </div>
+                <div class="feature-card glass fade-in-up delay-3">
+                    <div class="icon-wrapper"><i data-lucide="bar-chart-2"></i></div>
+                    <h3>Dynamic Visualization</h3>
+                    <p>Real-time data streaming and probability chart rendering to understand threat vectors instantly.</p>
+                </div>
+                <div class="feature-card glass fade-in-up delay-4">
+                    <div class="icon-wrapper"><i data-lucide="database"></i></div>
+                    <h3>Structured Persistence</h3>
+                    <p>Reliable logging of incidents and quarantined entities using a highly optimized database architecture.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="architecture" id="architecture">
+        <div class="container architecture-container">
+            <div class="architecture-content fade-in-up">
+                <h2>Resilient Architecture</h2>
+                <p>SentinelGPT is designed as a fully robust system, ensuring graceful degradation under unexpected failure conditions.</p>
+                <ul class="arch-list">
+                    <li>
+                        <i data-lucide="check-circle" class="text-success"></i>
+                        <div>
+                            <strong>Robust Backend</strong>
+                            <span>FastAPI + SQLAlchemy for concurrent telemetry ingestion.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-lucide="check-circle" class="text-success"></i>
+                        <div>
+                            <strong>Fault-Tolerant UI</strong>
+                            <span>React Error Boundaries for continuous operation.</span>
+                        </div>
+                    </li>
+                    <li>
+                        <i data-lucide="check-circle" class="text-success"></i>
+                        <div>
+                            <strong>Secure Access</strong>
+                            <span>JWT authentication for secure administrative operations.</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="architecture-visual fade-in-up delay-2">
+                <div class="glass-panel stat-panel">
+                    <div class="stat-row">
+                        <span class="stat-label">System Risk</span>
+                        <span class="stat-value text-success">SAFE</span>
+                    </div>
+                    <div class="stat-bar"><div class="fill" style="width: 15%;"></div></div>
+                    
+                    <div class="stat-row mt-4">
+                        <span class="stat-label">Packets Scanned</span>
+                        <span class="stat-value text-glow" id="packet-counter">4,892,103</span>
+                    </div>
+                    
+                    <div class="stat-row mt-4">
+                        <span class="stat-label">Active Shields</span>
+                        <span class="stat-value text-primary">ONLINE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="cta">
+        <div class="container cta-container glass fade-in-up">
+            <h2>Ready to secure your perimeter?</h2>
+            <p>Deploy SentinelGPT today and experience the future of autonomous cyber defense.</p>
+            <button class="btn btn-primary btn-lg">Get Started <i data-lucide="rocket"></i></button>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="logo">
+                    <i data-lucide="shield-alert" class="logo-icon"></i>
+                    <span>Sentinel<strong>GPT</strong></span>
+                </div>
+                <p>Autonomous AI Matrix Defense.</p>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 SentinelGPT. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
