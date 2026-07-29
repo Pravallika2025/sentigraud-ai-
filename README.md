@@ -33,13 +33,16 @@ The platform monitors network threats in real-time, maps them to MITRE ATT&CK te
 - Quick demo bypass for testing
 
 ### 📊 Dashboard
-- **5 Real-time Metric Cards**: Total Threats, Critical, High, Avg Risk Score, Blocked IPs
-- **Risk Gauge Chart**: Visual risk score display (0–100)
-- **Severity Donut Chart**: Critical / High / Medium / Low distribution
+- **7 Real-time Metric Cards**: Total Threats, Critical, High, Medium, Low, Avg Risk Score, Blocked IPs
+- **Risk Gauge Chart**: Visual average risk score display dial (0–100)
+- **Severity Donut Chart**: Critical / High / Medium / Low severity distribution
 - **Threat Type Breakdown Chart**: Bar chart of attack categories
 - **Risk Score Timeline**: Real-time time-series risk graph
-- **Live Alerts Feed**: Auto-updating threat stream
-- **Top 5 Recent Threats**: Quick-view table with MITRE ATT&CK tags
+- **Perimeter Heatmap Matrix**: Node grid of threat perimeters
+- **Attack Chrono Timeline**: Vertical sequence list of threat events
+- **Live Alerts Feed**: Auto-updating threat stream with Ack & Quarantine
+- **AI Remediation**: Dynamically displays containment protocols for active threats
+- **Quick Action Core**: Inject Test Threat, Purge Threat Logs, and Download Reports
 
 ### 🔍 Threat History
 - **Full Threat Table**: All logged incidents with timestamps
@@ -311,22 +314,47 @@ CyberSecurity-SentinelGPT/
 
 ---
 
-## 📸 Screenshots
+## 📸 Screenshots & Operations Walkthrough
 
 ### 📊 Global SOC Dashboard
-![SOC Dashboard Preview](screenshots/dashboard_preview.png)
+![SOC Dashboard Preview](docs/images/dashboard.png)
 
-### 🔐 Secure Login & Registration Interface
-![Login Interface Preview](screenshots/login_preview.png)
+### 🔐 Cyberpunk Login Interface
+![Login Interface Preview](docs/images/login_page.png)
+
+### 📝 Operator Registration Interface
+![Registration Interface Preview](docs/images/registration_page.png)
+
+### 🤖 AI Security Conversational Assistant
+![AI Chat Interface Preview](docs/images/ai_chat.png)
+
+### 📁 Heuristic Payload File Scanner
+![File Scanner Interface Preview](docs/images/file_scanner.png)
 
 ---
 
-## 🎯 Demo
+## 🎯 Live Deployment & Walkthrough
 
-**Live URL**: [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app)
+**Live Deployed Platform**: [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app)
 
-**Login**: `admin` / `admin123`  
-Or use **Quick Demo Access** button
+**🎥 Operations Walkthrough Video**: [Watch Deployed Walkthrough Video](https://github.com/Pravallika2025/sentigraud-ai-/blob/main/docs/walkthrough_demo.md)
+
+### 🔑 Test Operator Credentials
+We have seeded three default roles to support instant assessment:
+1. **Security Administrator**
+   - Email: `admin@sentinel.ai`
+   - Password: `Admin@123`
+   - Role: `Administrator`
+2. **Security Analyst**
+   - Email: `analyst@sentinel.ai`
+   - Password: `Analyst@123`
+   - Role: `Security Analyst`
+3. **Demo User**
+   - Email: `demo@sentinel.ai`
+   - Password: `Demo@123`
+   - Role: `Demo Observer`
+
+Or use the **Quick Demo Access (Bypass)** link on the login screen.
 
 ---
 
