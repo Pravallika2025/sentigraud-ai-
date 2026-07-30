@@ -176,18 +176,18 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 
 | Component | Working Live URL | Description | Status |
 |---|---|---|---|
-| 🌐 **Live SOC Platform** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | React Operations Dashboard | 🟢 Active |
-| 📡 **Live API Endpoint (Health)** | [https://sentinelgpt-ai.vercel.app/api/health](https://sentinelgpt-ai.vercel.app/api/health) | FastAPI Core Health Check | 🟢 Nominal |
-| 📖 **Live API Docs (Swagger)** | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
-| 📋 **Live API Specs (OpenAPI)** | [https://sentinelgpt-ai.vercel.app/openapi.json](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 Schema | 🟢 Active |
+| 🌐 **Live SOC Platform** | [Click to Open Platform](https://sentinelgpt-ai.vercel.app) | React SOC Operations Dashboard | 🟢 Active |
+| 📡 **Live API Endpoint (Health)** | [Click to Open Health Status](https://sentinelgpt-ai.vercel.app/api/health) | FastAPI Core Health Check (returns JSON) | 🟢 Active |
+| 📖 **Live API Docs (Swagger)** | [Click to Open Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
+| 📋 **Live API Specs (OpenAPI)** | [Click to Open OpenAPI Schema](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 JSON Schema | 🟢 Active |
 
 ### 🏠 Local Development Access
 
 | Component | Local URL | Live Fallback Link | Command to Run |
 |---|---|---|---|
-| 🖥️ **Frontend App** | `http://localhost:5173` | [Open Live Demo](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
-| ⚙️ **Backend API (Health)** | `http://localhost:8000/api/health` | [Open Live Health](https://sentinelgpt-ai.vercel.app/api/health) | `python backend/main.py` |
-| 📖 **Backend API Docs** | `http://localhost:8000/api/docs` | [Open Live Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
+| 🖥️ **Frontend App** | `http://localhost:5173` | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
+| ⚙️ **Backend API (Health)** | `http://localhost:8000/api/health` | [Open Live API Health](https://sentinelgpt-ai.vercel.app/api/health) | `python backend/main.py` |
+| 📖 **Backend API Docs** | `http://localhost:8000/api/docs` | [Open Live API Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
 | 🔌 **WebSocket Stream** | `ws://localhost:8000/ws` | — | `python backend/main.py` |
 | 💾 **SQLite Database** | `./sentinel_production.db` | — | Auto-created on start |
 
@@ -294,7 +294,7 @@ After running both frontend and backend:
 | Service | Command | Working Live URL | Local Dev URL |
 |---|---|---|---|
 | **Frontend** | `cd frontend && npm run dev` | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `http://localhost:5173` |
-| **Backend API** | `python backend/main.py` | [Open Live Health](https://sentinelgpt-ai.vercel.app/api/health) | `http://localhost:8000` |
+| **Backend API** | `python backend/main.py` | [Open Live API Health](https://sentinelgpt-ai.vercel.app/api/health) | `http://localhost:8000` |
 | **API Docs** | `python backend/main.py` | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | `http://localhost:8000/api/docs` |
 
 The Vite dev server automatically proxies `/api/*` requests to the backend, so both services communicate seamlessly.
