@@ -324,7 +324,7 @@ The Vite dev server automatically proxies `/api/*` requests to the backend, so b
 | `POST` | `/api/clear_logs` | Clear all threat logs | ✅ |
 | `GET` | `/api/export` | Export full incident history as JSON | ✅ |
 | `GET` | `/api/health` | Health check endpoint | ❌ |
-| `GET` | `/api/docs` | FastAPI Swagger UI documentation | ❌ |
+| `GET` | `/docs` | FastAPI Swagger UI documentation | ❌ |
 
 ### Example API Calls
 ```bash
