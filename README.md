@@ -170,27 +170,28 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 
 ---
 
-## 🚀 Live Deployment
+## 🚀 Project Access & Live Links
 
-### ✅ Live Production Deployment
+### 🌐 Live Production Access (Clickable Live Links)
 
-| Component | URL |
-|---|---|
-| 🌐 **Live Platform** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) |
-| 📡 **API Endpoint** | [https://sentinelgpt-ai.vercel.app/api/health](https://sentinelgpt-ai.vercel.app/api/health) |
-| 📖 **API Docs (Swagger)** | [https://sentinelgpt-ai.vercel.app/api/docs](https://sentinelgpt-ai.vercel.app/api/docs) |
+| Component | Working Live URL | Description | Status |
+|---|---|---|---|
+| 🌐 **Live SOC Platform** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | React Operations Dashboard | 🟢 Active |
+| 📡 **Live API Endpoint (Health)** | [https://sentinelgpt-ai.vercel.app/api/health](https://sentinelgpt-ai.vercel.app/api/health) | FastAPI Core Health Check | 🟢 Nominal |
+| 📖 **Live API Docs (Swagger)** | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
+| 📋 **Live API Specs (OpenAPI)** | [https://sentinelgpt-ai.vercel.app/openapi.json](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 Schema | 🟢 Active |
 
-### ✅ Local Development Deployment
+### 🏠 Local Development Access
 
-| Component | URL | Description |
-|---|---|---|
-| 🖥️ **Frontend** | [http://localhost:5173](http://localhost:5173) | React dev server (Vite) |
-| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | FastAPI (Uvicorn) |
-| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | Swagger UI |
-| 🔌 **WebSocket** | `ws://localhost:8000/ws` | Real-time event stream |
-| 💾 **Database** | `./sentinel_production.db` | SQLite (auto-created) |
+| Component | Local URL | Live Fallback Link | Command to Run |
+|---|---|---|---|
+| 🖥️ **Frontend App** | `http://localhost:5173` | [Open Live Demo](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
+| ⚙️ **Backend API (Health)** | `http://localhost:8000/api/health` | [Open Live Health](https://sentinelgpt-ai.vercel.app/api/health) | `python backend/main.py` |
+| 📖 **Backend API Docs** | `http://localhost:8000/api/docs` | [Open Live Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
+| 🔌 **WebSocket Stream** | `ws://localhost:8000/ws` | — | `python backend/main.py` |
+| 💾 **SQLite Database** | `./sentinel_production.db` | — | Auto-created on start |
 
-> **Note:** Localhost URLs only work after running the project locally. The Vercel deployment is accessible to everyone.
+> **Note:** The Live Vercel links are accessible 24/7 anywhere. The `localhost` URLs work when running the application locally on your machine.
 
 ---
 
@@ -290,10 +291,11 @@ ADMIN_PASSWORD=your_admin_password
 
 After running both frontend and backend:
 
-| Service | Command | URL |
-|---|---|---|
-| **Frontend** | `cd frontend && npm run dev` | [http://localhost:5173](http://localhost:5173) |
-| **Backend** | `python backend/main.py` | [http://localhost:8000](http://localhost:8000) |
+| Service | Command | Working Live URL | Local Dev URL |
+|---|---|---|---|
+| **Frontend** | `cd frontend && npm run dev` | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `http://localhost:5173` |
+| **Backend API** | `python backend/main.py` | [Open Live Health](https://sentinelgpt-ai.vercel.app/api/health) | `http://localhost:8000` |
+| **API Docs** | `python backend/main.py` | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | `http://localhost:8000/api/docs` |
 
 The Vite dev server automatically proxies `/api/*` requests to the backend, so both services communicate seamlessly.
 
