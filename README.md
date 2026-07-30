@@ -469,23 +469,23 @@ GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
 
 ---
 
-## 🚀 Quick Access — 3 Always-Working Links (Click to Open)
+## 🚀 Quick Access — Click to Open
 
-> All 3 links below are **live and working 24/7** — click to open instantly from anywhere, no setup needed:
+> **Live links (always working — no setup needed):**
 
 <div align="center">
 
-| # | Page | Working Link | Status |
-|---|---|---|---|
-| ✅ **1** | 🖥️ SOC Dashboard | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | 🟢 Live |
-| ✅ **2** | 📡 API Health Status | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) | 🟢 Live |
-| ✅ **3** | 📖 API Docs / Swagger | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | 🟢 Live |
+| # | Page | ✅ Click to Open |
+|---|---|---|
+| 1 | 🖥️ SOC Dashboard | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) |
+| 2 | 📡 API Health | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) |
+| 3 | 📖 API Docs | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) |
 
-## 👉 [OPEN SOC DASHBOARD](https://sentinelgpt-ai.vercel.app) 👈
+## 👉 [OPEN LIVE SOC DASHBOARD](https://sentinelgpt-ai.vercel.app) 👈
 
-## 👉 [OPEN API HEALTH](https://sentinelgpt-ai.vercel.app/health) 👈
+## 👉 [OPEN LIVE API HEALTH](https://sentinelgpt-ai.vercel.app/health) 👈
 
-## 👉 [OPEN API DOCS](https://sentinelgpt-ai.vercel.app/docs) 👈
+## 👉 [OPEN LIVE API DOCS](https://sentinelgpt-ai.vercel.app/docs) 👈
 
 </div>
 
@@ -493,17 +493,35 @@ GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
 
 ### 🏠 Run Locally on Your Machine
 
+**Step 1 — Start the Backend (Terminal 1):**
+
 ```bash
-# Terminal 1 — Start Backend
 pip install -r requirements.txt
 python backend/main.py
-# Backend available at: http://localhost:8000
-
-# Terminal 2 — Start Frontend Dashboard
-cd frontend && npm install && npm run dev
-# Dashboard available at: http://localhost:5173
 ```
 
-> ⚠️ `localhost` links only work **on your own machine** after running the two commands above.
-> Use the **live Vercel links** above to open the platform from any device without any setup.
+**Step 2 — Start the Frontend (Terminal 2):**
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+**Once both are running, click these localhost links:**
+
+| # | Page | Localhost Link |
+|---|---|---|
+| 1 | 🖥️ **Local SOC Dashboard** | [http://localhost:5173](http://localhost:5173) |
+| 2 | ⚙️ **Local Backend API** | [http://localhost:8000](http://localhost:8000) |
+| 3 | 📖 **Local API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) |
+
+### 👉 [OPEN LOCAL DASHBOARD — http://localhost:5173](http://localhost:5173) 👈
+
+### 👉 [OPEN LOCAL API HEALTH — http://localhost:8000](http://localhost:8000) 👈
+
+### 👉 [OPEN LOCAL API DOCS — http://localhost:8000/api/docs](http://localhost:8000/api/docs) 👈
+
+> ⚠️ **The localhost links above only work after running both commands on your own machine.**
+> If you have not run the commands yet, use the **Live Vercel links** in the section above instead.
 
