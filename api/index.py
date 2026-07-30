@@ -257,13 +257,12 @@ def get_current_user(request: Request):
 # API ENDPOINTS
 # ============================================================
 
-@app.get("/health", include_in_schema=False)
-@app.get("/health/", include_in_schema=False)
-@app.get("/api/health", include_in_schema=False)
-@app.get("/api/health/", include_in_schema=False)
+@app.get("/health", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/health/", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/api/health", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/api/health/", include_in_schema=False, response_class=HTMLResponse)
 async def health_check(request: Request, format: Optional[str] = None):
-    accept = request.headers.get("accept", "").lower()
-    if format == "json" or ("application/json" in accept and "text/html" not in accept):
+    if format == "json":
         return JSONResponse(content={
             "status": "NOMINAL",
             "service": "SentinelGPT Autonomous Defense Core",
@@ -337,16 +336,6 @@ async def health_check(request: Request, format: Optional[str] = None):
 @app.get("/api")
 @app.get("/api/")
 async def root(request: Request, format: Optional[str] = None):
-    accept = request.headers.get("accept", "").lower()
-    if format == "json" or ("application/json" in accept and "text/html" not in accept):
-        return JSONResponse(content={
-            "status": "NOMINAL",
-            "service": "SentinelGPT Autonomous Defense Core",
-            "version": "1.0.0",
-            "docs": "https://sentinelgpt-ai.vercel.app/docs",
-            "platform": "https://sentinelgpt-ai.vercel.app",
-            "environment": "Vercel Serverless Production"
-        })
     return await health_check(request, format)
 
 @app.post("/login")
