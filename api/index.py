@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy import create_engine, Column, Integer, String, DateTime, desc, text
@@ -63,12 +66,10 @@ class User(Base):
     ts = Column(DateTime, default=datetime.utcnow)
 
 try:
-    # Try querying to see if User table has the new columns
     db_check = SessionLocal()
     db_check.execute(text("SELECT role, full_name, organization FROM users LIMIT 1"))
     db_check.close()
 except Exception:
-    # If not, recreate tables to match new schema
     try:
         Base.metadata.drop_all(bind=engine)
     except Exception:
@@ -79,7 +80,6 @@ Base.metadata.create_all(bind=engine)
 def seed_database_if_needed():
     db = SessionLocal()
     try:
-        # Seed default role-based credentials if not present
         default_users = [
             ("Admin User", "admin@sentinel.ai", "Admin@123", "Administrator", "Sentinel Security Core"),
             ("Analyst User", "analyst@sentinel.ai", "Analyst@123", "Security Analyst", "Global SOC Center"),
@@ -118,11 +118,9 @@ def seed_database_if_needed():
                 inc = SOCIncident(event_id=e_id, ip=ip, description=desc_text, priority_score=score, ts=evt_time)
                 db.add(inc)
                 db.add(PerimeterLog(ip=ip, target="/api/v1/auth", ts=evt_time))
-            
-            # Initial Quarantines
+
             db.add(BlockedIP(ip="103.44.20.12", reason="High Risk Velocity Pivot", ts=now - timedelta(minutes=10)))
             db.add(BlockedIP(ip="185.220.101.5", reason="Credential Stuffing Vector", ts=now - timedelta(minutes=25)))
-            
             db.commit()
     except Exception as e:
         db.rollback()
@@ -132,47 +130,18 @@ def seed_database_if_needed():
 
 seed_database_if_needed()
 
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.openapi.utils import get_openapi
-
-# --- FASTAPI APP INITIALIZATION ---
+# ============================================================
+# FASTAPI APP — middleware MUST be added before routes
+# ============================================================
 app = FastAPI(
     title="SentinelGPT API",
-    description="Autonomous Cyber Defense Serverless Backend for Vercel",
+    description="Autonomous Cyber Defense Serverless Backend — SentinelGPT Platform",
     version="1.0.0",
-    docs_url=None,
-    openapi_url=None
+    docs_url=None,        # We serve custom swagger below
+    openapi_url=None,     # We serve custom openapi below
 )
 
-@app.get("/api/docs", include_in_schema=False)
-@app.get("/api/docs/", include_in_schema=False)
-@app.get("/docs", include_in_schema=False)
-@app.get("/docs/", include_in_schema=False)
-async def custom_swagger_ui_html(request: Request):
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="SentinelGPT API Docs",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
-    )
-
-@app.get("/api/openapi.json", include_in_schema=False)
-@app.get("/openapi.json", include_in_schema=False)
-async def custom_openapi():
-    return get_openapi(title="SentinelGPT API", version="1.0.0", routes=app.routes)
-
-@app.get("/")
-@app.get("/api")
-@app.get("/api/")
-async def root_endpoint():
-    return {
-        "status": "NOMINAL",
-        "service": "SentinelGPT Autonomous Defense Core",
-        "version": "1.0.0",
-        "docs": "/api/docs",
-        "environment": "Vercel Serverless Production"
-    }
-
+# CORS middleware added FIRST before any routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -181,7 +150,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- MODELS ---
+# ============================================================
+# SWAGGER UI + OPENAPI ROUTES — registered AFTER middleware
+# ============================================================
+@app.get("/api/docs", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/api/docs/", include_in_schema=False, response_class=HTMLResponse)
+async def swagger_ui():
+    html = get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title="SentinelGPT API Documentation",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
+    )
+    return HTMLResponse(content=html.body)
+
+@app.get("/api/openapi.json", include_in_schema=False)
+async def openapi_schema():
+    schema = get_openapi(
+        title="SentinelGPT API",
+        version="1.0.0",
+        description="Autonomous Cyber Defense REST API",
+        routes=app.routes,
+    )
+    return JSONResponse(content=schema)
+
+# ============================================================
+# REQUEST MODELS
+# ============================================================
 class IPActionRequest(BaseModel):
     ip: str
     reason: Optional[str] = "Manual Administrator Action"
@@ -199,7 +194,9 @@ class RegisterRequest(BaseModel):
     role: Optional[str] = "Security Analyst"
     organization: Optional[str] = ""
 
-# --- AUTH HELPERS ---
+# ============================================================
+# AUTH HELPERS
+# ============================================================
 def create_access_token(data: dict):
     to_encode = data.copy()
     expire = datetime.utcnow() + timedelta(hours=8)
@@ -209,7 +206,6 @@ def create_access_token(data: dict):
 def get_current_user(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
-        # Permit bypass in demo mode if token is 'bypass_token'
         return "admin"
     token = auth_header.replace("Bearer ", "").strip()
     if token == "bypass_token":
@@ -223,7 +219,22 @@ def get_current_user(request: Request):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-# --- ENDPOINTS ---
+# ============================================================
+# API ENDPOINTS
+# ============================================================
+
+@app.get("/")
+@app.get("/api")
+@app.get("/api/")
+async def root():
+    return {
+        "status": "NOMINAL",
+        "service": "SentinelGPT Autonomous Defense Core",
+        "version": "1.0.0",
+        "docs": "https://sentinelgpt-ai.vercel.app/api/docs",
+        "platform": "https://sentinelgpt-ai.vercel.app",
+        "environment": "Vercel Serverless Production"
+    }
 
 @app.get("/api/health")
 @app.get("/health")
@@ -240,7 +251,7 @@ async def health_check():
 async def login_endpoint(request: Request):
     username = "admin"
     password = ""
-    
+
     contentType = request.headers.get("content-type", "")
     if "application/json" in contentType:
         body = await request.json()
@@ -252,8 +263,7 @@ async def login_endpoint(request: Request):
         password = form.get("password", "")
 
     username_clean = username.strip().lower()
-    
-    # 1. Check default admin credentials
+
     if username_clean == "admin" and (password == ADMIN_PASSWORD or password == "admin123"):
         token = create_access_token({"sub": "admin"})
         return {
@@ -265,8 +275,7 @@ async def login_endpoint(request: Request):
             "role": "Administrator",
             "organization": "Sentinel Security Core"
         }
-        
-    # 2. Check database-backed users (seeded + registered)
+
     db = SessionLocal()
     try:
         user = db.query(User).filter((User.username == username_clean) | (User.email == username_clean)).first()
@@ -287,7 +296,7 @@ async def login_endpoint(request: Request):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
         db.close()
-        
+
     raise HTTPException(status_code=401, detail="Invalid credentials")
 
 @app.post("/register")
@@ -299,15 +308,10 @@ async def register_endpoint(req: RegisterRequest):
         email_clean = req.email.strip().lower()
         if not username_clean or not req.password or not email_clean:
             raise HTTPException(status_code=400, detail="Username, email, and password are required")
-        
-        # Check if user already exists
         existing = db.query(User).filter((User.username == username_clean) | (User.email == email_clean)).first()
         if existing:
             raise HTTPException(status_code=400, detail="Username or email already registered")
-        
-        # Hash password
         pwd_hash = hashlib.sha256(req.password.encode()).hexdigest()
-        
         new_user = User(
             username=username_clean,
             email=email_clean,
@@ -332,7 +336,6 @@ async def register_endpoint(req: RegisterRequest):
 async def get_snapshot(user: str = Depends(get_current_user)):
     db = SessionLocal()
     try:
-        # Generate dynamic pulse if needed (ensures demo continuity on serverless)
         if random.random() > 0.7:
             sim_ip = f"103.44.{random.randint(1,254)}.{random.randint(1,254)}"
             threat_types = [
@@ -357,7 +360,6 @@ async def get_snapshot(user: str = Depends(get_current_user)):
         incidents = db.query(SOCIncident).order_by(desc(SOCIncident.ts)).limit(30).all()
         blocked = db.query(BlockedIP).order_by(desc(BlockedIP.ts)).all()
 
-        # Format logs with standardized keys for frontend
         logs_data = []
         for inc in incidents:
             logs_data.append({
@@ -448,7 +450,6 @@ async def sim_threat(req: SimThreatRequest = None, user: str = Depends(get_curre
         threat_type = (req and req.type) or "Manual Triggered Anomaly"
         score = (req and req.score) or random.randint(75, 99)
         e_id = f"TRIG-{int(time.time())}"
-        
         evt = SOCIncident(event_id=e_id, ip=ip, description=threat_type, priority_score=score, ts=datetime.utcnow())
         db.add(evt)
         db.commit()
