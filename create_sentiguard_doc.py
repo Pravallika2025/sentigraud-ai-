@@ -5,653 +5,577 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.oxml import parse_xml
 from docx.oxml.ns import nsdecls
+
 from PIL import Image, ImageDraw, ImageFont
 
-BASE_DIR    = r"c:\Users\User\pravallika sentinel"
-IMG_DIR     = os.path.join(BASE_DIR, "docs", "images")
-DESKTOP_DIR = (r"C:\Users\User\OneDrive\Desktop"
-               if os.path.exists(r"C:\Users\User\OneDrive\Desktop")
-               else r"C:\Users\User\Desktop")
+BASE_DIR = r"c:\Users\User\pravallika sentinel"
+IMG_DIR = os.path.join(BASE_DIR, "docs", "images")
+DESKTOP_DIR = r"C:\Users\User\OneDrive\Desktop" if os.path.exists(r"C:\Users\User\OneDrive\Desktop") else r"C:\Users\User\Desktop"
 os.makedirs(IMG_DIR, exist_ok=True)
 
-IMG_DASHBOARD = os.path.join(IMG_DIR, "dashboard.png")
-IMG_LOGIN     = os.path.join(IMG_DIR, "login_page.png")
-IMG_REGISTER  = os.path.join(IMG_DIR, "registration_page.png")
-IMG_CHAT      = os.path.join(IMG_DIR, "ai_chat.png")
-IMG_SCANNER   = os.path.join(IMG_DIR, "file_scanner.png")
+# ------------------------------------------------------------------------------
+# 1. GENERATE CLEAN DIAGRAM IMAGES (BLACK & WHITE / CLEAN LINE ART LIKE SAMPLE)
+# ------------------------------------------------------------------------------
+def generate_sample_style_arch_diagram():
+    width, height = 750, 520
+    img = Image.new('RGB', (width, height), color='#ffffff')
+    draw = ImageDraw.Draw(img)
 
-# ─────────────────────────────────────────────────────────────────────────────
-# HELPER: try to load a font, fallback gracefully
-# ─────────────────────────────────────────────────────────────────────────────
-def _font(size):
     try:
-        return ImageFont.truetype("arial.ttf", size)
+        font_main = ImageFont.truetype("times.ttf", 13)
+        font_bold = ImageFont.truetype("timesbd.ttf", 14)
+        font_sub = ImageFont.truetype("times.ttf", 11)
     except Exception:
-        return ImageFont.load_default()
+        font_main = font_bold = font_sub = ImageFont.load_default()
 
-def _box(draw, x1, y1, x2, y2, bg, border, lines, fnt):
-    draw.rectangle([x1,y1,x2,y2], fill=bg, outline=border, width=2)
-    cx = (x1+x2)//2
-    if isinstance(lines, str):
-        lines = [lines]
-    step = 18
-    total_h = len(lines) * step
-    ty_start = (y1+y2)//2 - total_h//2 + step//2
-    for i, ln in enumerate(lines):
-        draw.text((cx, ty_start + i*step), ln, fill="#111111", font=fnt, anchor="mm")
+    def draw_box(x1, y1, x2, y2, text, subtext=""):
+        draw.rectangle([x1, y1, x2, y2], fill="#ffffff", outline="#000000", width=1)
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2 - 8 if subtext else (y1 + y2) // 2
+        draw.text((cx, cy), text, fill="#000000", font=font_bold, anchor="mm")
+        if subtext:
+            draw.text((cx, cy + 16), subtext, fill="#333333", font=font_sub, anchor="mm")
 
-def _arrow(draw, x1, y1, x2, y2):
-    draw.line([x1,y1,x2,y2], fill="#003366", width=2)
-    draw.polygon([(x2,y2),(x2-5,y2-9),(x2+5,y2-9)], fill="#003366")
+    def draw_arrow(x1, y1, x2, y2):
+        draw.line([x1, y1, x2, y2], fill="#000000", width=1)
+        draw.polygon([(x2, y2), (x2-5, y2-8), (x2+5, y2-8)], fill="#000000")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GENERATE ARCHITECTURE DIAGRAM
-# ─────────────────────────────────────────────────────────────────────────────
-def make_arch_diagram():
-    img = Image.new("RGB", (860, 600), "#ffffff")
-    d   = ImageDraw.Draw(img)
-    f12 = _font(12); f11 = _font(11)
+    # Flow boxes matching sample Page 6 / Page 11
+    draw_box(240, 15, 510, 55, "ADMINISTRATOR", "(Login & Telemetry Setup)")
+    draw_arrow(375, 55, 375, 80)
 
-    _box(d,240,10,620,52,"#E6F2FF","#003366",["SECURITY OPERATOR / ADMINISTRATOR"],f12)
-    _arrow(d,430,52,430,76)
-    _box(d,60,76,800,126,"#EBF5FB","#005580",
-         ["FRONTEND  —  React 19 + Vite 5.4 SPA",
-          "Login · Dashboard · Telemetry Feed · Quarantine Control · AI Chat · File Scanner"],f11)
-    _arrow(d,430,126,430,152)
-    _box(d,60,152,800,202,"#E9F7EF","#008040",
-         ["FASTAPI BACKEND CONTROLLER  (index.py / main.py)",
-          "REST Router · JWT Auth · CORS Middleware · WebSocket Engine"],f11)
-    _arrow(d,430,202,430,228)
+    draw_box(120, 80, 630, 125, "FRONTEND INTERFACE (HTML5 / CSS3 / React 19 / JS)", "Login | Dashboard | Real-Time Feed | AI Chat | File Scanner")
+    draw_arrow(375, 125, 375, 150)
 
-    d.line([200,228,660,228], fill="#003366", width=2)
-    _arrow(d,200,228,200,255); _arrow(d,660,228,660,255)
+    draw_box(140, 150, 610, 195, "FASTAPI APPLICATION (main.py / index.py)", "Authentication | Routing | Session | Request Handling")
+    draw_arrow(375, 195, 375, 220)
 
-    _box(d,30,255,390,345,"#FEF9E7","#D97706",
-         ["TELEMETRY MONITOR AGENT",
-          "Heuristic Anomaly Scoring (0-100)",
-          "MITRE ATT&CK Technique Mapping"],f11)
-    _box(d,470,255,830,345,"#F4ECF7","#7E22CE",
-         ["AUTONOMOUS QUARANTINE AGENT",
-          "Auto-Block Score >= 75",
-          "AI Remediation · Manual Revoke"],f11)
+    # Agents Split
+    draw.line([230, 220, 520, 220], fill="#000000", width=1)
+    draw_arrow(230, 220, 230, 245)
+    draw_arrow(520, 220, 520, 245)
 
-    d.line([200,345,200,368], fill="#003366", width=2)
-    d.line([660,345,660,368], fill="#003366", width=2)
-    d.line([200,368,660,368], fill="#003366", width=2)
-    _arrow(d,430,368,430,392)
+    draw_box(80, 245, 380, 320, "TELEMETRY MONITOR AGENT", "• Risk Scoring (0-100)\n• MITRE ATT&CK Mapping\n• Velocity Anomaly Analysis")
+    draw_box(400, 245, 700, 320, "AUTONOMOUS QUARANTINE AGENT", "• High-Risk IP Quarantine (>= 75)\n• AI Remediation Advice\n• Manual Revoke Validation")
 
-    _box(d,130,392,730,442,"#EAFAF1","#15803D",
-         ["SQLALCHEMY ORM  ·  SQLITE DATABASE",
-          "Users  |  SOC Incidents  |  Blocked IPs  |  Perimeter Logs"],f11)
-    _arrow(d,430,442,430,468)
-    _box(d,100,468,760,518,"#F2F3F4","#334155",
-         ["VERCEL SERVERLESS CLOUD DEPLOYMENT",
-          "Live SOC Dashboard  |  JSON Export  |  Swagger API Docs"],f11)
+    # DB Merge
+    draw.line([230, 320, 230, 340], fill="#000000", width=1)
+    draw.line([520, 320, 520, 340], fill="#000000", width=1)
+    draw.line([230, 340, 520, 340], fill="#000000", width=1)
+    draw_arrow(375, 340, 375, 365)
 
-    path = os.path.join(IMG_DIR, "arch_diagram.png")
+    draw_box(150, 365, 600, 420, "SQLALCHEMY DATABASE LAYER", "Admin Table | SOC Incident Table | Blocked IP Table | Perimeter Logs")
+    draw_arrow(375, 420, 375, 445)
+
+    draw_box(100, 445, 650, 495, "DASHBOARD | REAL-TIME TELEMETRY | QUARANTINE | JSON EXPORT", "SQLite (Local) / Vercel Serverless (Production)")
+
+    path = os.path.join(IMG_DIR, "sample_arch_diagram.png")
     img.save(path)
     return path
 
-# ─────────────────────────────────────────────────────────────────────────────
-# GENERATE WORKFLOW DIAGRAM
-# ─────────────────────────────────────────────────────────────────────────────
-def make_workflow_diagram():
-    img = Image.new("RGB", (860, 520), "#ffffff")
-    d   = ImageDraw.Draw(img)
-    f11 = _font(11)
+def generate_sample_style_flow_diagram():
+    width, height = 750, 500
+    img = Image.new('RGB', (width, height), color='#ffffff')
+    draw = ImageDraw.Draw(img)
 
-    steps = [
-        (70,10,790,58,"#EBF5FB","#005580",
-         ["NETWORK TRAFFIC & SECURITY TELEMETRY FEED",
-          "Inbound Logs · IP Probes · HTTP Requests"]),
-        (70,82,790,132,"#F2F3F4","#003366",
-         ["FRONTEND DASHBOARD & ALERTS FEED",
-          "Displays Live Metrics · Captures Operator Controls"]),
-        (70,156,790,226,"#FEF9E7","#D97706",
-         ["TELEMETRY MONITOR & THREAT DETECTION AGENT",
-          "Analyzes IP Velocity & Payload · Calculates Risk Score (0-100)",
-          "Maps Incident to MITRE ATT&CK Technique"]),
-        (70,250,790,320,"#F4ECF7","#7E22CE",
-         ["AUTONOMOUS QUARANTINE & VALIDATION AGENT",
-          "Evaluates Risk Threshold (Score >= 75 = Auto Quarantine)",
-          "AI Remediation Guidance · False Positive Prevention"]),
-        (160,344,700,394,"#EAFAF1","#15803D",
-         ["DATABASE STORAGE  —  SOC Incidents · Blocked IPs · User Accounts"]),
-    ]
-    prev_bottom = None
-    for (x1,y1,x2,y2,bg,border,lines) in steps:
-        _box(d,x1,y1,x2,y2,bg,border,lines,f11)
-        if prev_bottom:
-            _arrow(d,430,prev_bottom,430,y1)
-        prev_bottom = y2
+    try:
+        font_bold = ImageFont.truetype("timesbd.ttf", 13)
+        font_sub = ImageFont.truetype("times.ttf", 11)
+    except Exception:
+        font_bold = font_sub = ImageFont.load_default()
 
-    _arrow(d,430,394,430,418)
-    d.line([60,418,800,418], fill="#003366", width=2)
-    labels = ["DASHBOARD","CHARTS","QUARANTINE","AI CHAT","SCANNER","EXPORT"]
-    xs = [80,210,340,470,600,730]
-    for lbl,cx in zip(labels,xs):
-        _arrow(d,cx,418,cx,428)
-        _box(d,cx-52,428,cx+52,474,"#E2E8F0","#475569",[lbl],f11)
+    def draw_box(x1, y1, x2, y2, text, subtext=""):
+        draw.rectangle([x1, y1, x2, y2], fill="#ffffff", outline="#000000", width=1)
+        cx = (x1 + x2) // 2
+        cy = (y1 + y2) // 2 - 6 if subtext else (y1 + y2) // 2
+        draw.text((cx, cy), text, fill="#000000", font=font_bold, anchor="mm")
+        if subtext:
+            draw.text((cx, cy + 15), subtext, fill="#333333", font=font_sub, anchor="mm")
 
-    path = os.path.join(IMG_DIR, "workflow_diagram.png")
+    def draw_arrow(x1, y1, x2, y2):
+        draw.line([x1, y1, x2, y2], fill="#000000", width=1)
+        draw.polygon([(x2, y2), (x2-5, y2-8), (x2+5, y2-8)], fill="#000000")
+
+    draw_box(200, 10, 550, 50, "ADMINISTRATOR", "Login and Telemetry Setup")
+    draw_arrow(375, 50, 375, 75)
+
+    draw_box(180, 75, 570, 115, "WEB BROWSER", "React 19 Glassmorphism Single Page Application")
+    draw_arrow(375, 115, 375, 140)
+
+    draw_box(140, 140, 610, 185, "FRONTEND TECHNOLOGIES", "HTML5 | CSS3 | JavaScript | Vite 5.4 SPA")
+    draw_arrow(375, 185, 375, 210)
+
+    draw_box(140, 210, 610, 260, "BACKEND TECHNOLOGIES", "Python | FastAPI | Uvicorn | Agentic AI Engine\n(Telemetry Monitor Agent & Autonomous Quarantine Agent)")
+    draw_arrow(375, 260, 375, 285)
+
+    draw_box(140, 285, 610, 345, "DATABASE TECHNOLOGIES", "SQLAlchemy ORM\nSQLite (Local) | PostgreSQL / Vercel Storage (Production)")
+    draw_arrow(375, 345, 375, 370)
+
+    draw_box(140, 370, 610, 420, "OUTPUT & REPORT GENERATION", "JSON Log Export | Interactive Charts | Live SOC Dashboard")
+    draw_arrow(375, 420, 375, 445)
+
+    draw_box(180, 445, 570, 485, "LIVE DEPLOYMENT", "https://sentinelgpt-ai.vercel.app")
+
+    path = os.path.join(IMG_DIR, "sample_flow_diagram.png")
     img.save(path)
     return path
 
-# ─────────────────────────────────────────────────────────────────────────────
-# BUILD THE WORD DOCUMENT  (original first-doc style restored & improved)
-# ─────────────────────────────────────────────────────────────────────────────
-def build_doc(save_paths):
-    arch_img     = make_arch_diagram()
-    workflow_img = make_workflow_diagram()
+# ------------------------------------------------------------------------------
+# 2. CREATE EXACT 15-PAGE WORD DOCUMENT MATCHING REFERENCE PDF SCREENSHOTS
+# ------------------------------------------------------------------------------
+def create_exact_reference_word_document(save_paths):
+    arch_img = generate_sample_style_arch_diagram()
+    flow_img = generate_sample_style_flow_diagram()
 
     doc = docx.Document()
 
-    # ── Page margins ─────────────────────────────────────────────
-    sec = doc.sections[0]
-    sec.top_margin    = Inches(1.0)
-    sec.bottom_margin = Inches(1.0)
-    sec.left_margin   = Inches(1.15)
-    sec.right_margin  = Inches(1.15)
+    # Margins: Standard 1 inch all around
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1)
+    section.right_margin = Inches(1)
 
-    # ── Global font (Calibri – matching original) ─────────────────
-    ns = doc.styles["Normal"]
-    ns.font.name  = "Calibri"
-    ns.font.size  = Pt(11)
-    ns.font.color.rgb = RGBColor(0x22,0x22,0x22)
+    # Base font: Times New Roman 12pt, Black text
+    style_normal = doc.styles['Normal']
+    style_normal.font.name = 'Times New Roman'
+    style_normal.font.size = Pt(12)
+    style_normal.font.color.rgb = RGBColor(0, 0, 0)
 
-    # ════════════════════════════════════════════════════════════════
-    # HELPER FUNCTIONS
-    # ════════════════════════════════════════════════════════════════
-    C_DARK  = RGBColor(0x00,0x27,0x50)   # deep navy
-    C_MID   = RGBColor(0x00,0x5F,0x8E)   # medium blue
-    C_GRAY  = RGBColor(0x55,0x55,0x55)
-
-    def h1(text):
+    def add_heading_1(text):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(16)
-        p.paragraph_format.space_after  = Pt(5)
-        r = p.add_run(text)
-        r.font.name = "Calibri"; r.font.size = Pt(15)
-        r.font.bold = True; r.font.color.rgb = C_DARK
-        # bottom rule via paragraph border
-        pPr = p._p.get_or_add_pPr()
-        pBdr = parse_xml(
-            r'<w:pBdr %s><w:bottom w:val="single" w:sz="6" w:space="1" '
-            r'w:color="003366"/></w:pBdr>' % nsdecls("w"))
-        pPr.append(pBdr)
+        p.paragraph_format.space_before = Pt(18)
+        p.paragraph_format.space_after = Pt(12)
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(16)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        return p
 
-    def h2(text):
+    def add_heading_2(text):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(10)
-        p.paragraph_format.space_after  = Pt(3)
-        r = p.add_run(text)
-        r.font.name = "Calibri"; r.font.size = Pt(12)
-        r.font.bold = True; r.font.color.rgb = C_MID
+        p.paragraph_format.space_before = Pt(14)
+        p.paragraph_format.space_after = Pt(6)
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.size = Pt(13)
+        run.font.bold = True
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        return p
 
-    def para(text, bold_label=None, justify=True):
+    def add_para(text, bold_prefix=None):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(0)
-        p.paragraph_format.space_after  = Pt(6)
-        p.paragraph_format.line_spacing = 1.2
-        if justify:
-            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        if bold_label:
-            r1 = p.add_run(bold_label)
-            r1.font.name = "Calibri"; r1.font.bold = True
-            r1.font.color.rgb = C_DARK
-        r2 = p.add_run(text)
-        r2.font.name = "Calibri"
+        p.paragraph_format.space_after = Pt(8)
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+        if bold_prefix:
+            r_bold = p.add_run(bold_prefix)
+            r_bold.font.name = 'Times New Roman'
+            r_bold.font.bold = True
+            r_bold.font.color.rgb = RGBColor(0, 0, 0)
+        run = p.add_run(text)
+        run.font.name = 'Times New Roman'
+        run.font.color.rgb = RGBColor(0, 0, 0)
+        return p
 
-    def bullet(label, text):
-        p = doc.add_paragraph(style="List Bullet")
-        p.paragraph_format.space_before  = Pt(0)
-        p.paragraph_format.space_after   = Pt(3)
-        p.paragraph_format.left_indent   = Inches(0.3)
-        p.paragraph_format.line_spacing  = 1.15
-        p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        r1 = p.add_run(label)
-        r1.font.name = "Calibri"; r1.font.bold = True
-        r1.font.color.rgb = C_DARK
-        r2 = p.add_run(text)
-        r2.font.name = "Calibri"
+    def add_centered_image(img_path, width_inches=5.8):
+        if os.path.exists(img_path):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.space_before = Pt(14)
+            p.paragraph_format.space_after = Pt(14)
+            p.add_run().add_picture(img_path, width=Inches(width_inches))
 
-    def caption(text):
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_after = Pt(10)
-        r = p.add_run(text)
-        r.font.name = "Calibri"; r.font.size = Pt(9.5)
-        r.font.italic = True; r.font.color.rgb = C_GRAY
+    # ==========================================================================
+    # PAGE 1: TITLE PAGE (Matching Screenshot Page 1)
+    # ==========================================================================
+    p_title = doc.add_paragraph()
+    p_title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    p_title.paragraph_format.space_before = Pt(140)
+    p_title.paragraph_format.space_after = Pt(20)
+    
+    r_t1 = p_title.add_run("SentinelGPT: An AI-Powered Large Language Model\nFramework for Advanced Cyber Threat Detection\nand Analysis")
+    r_t1.font.name = 'Times New Roman'
+    r_t1.font.size = Pt(20)
+    r_t1.font.bold = True
+    r_t1.font.color.rgb = RGBColor(0, 0, 0)
 
-    def img_center(path, w=6.0, cap=None):
-        if not os.path.exists(path):
-            return
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.paragraph_format.space_before = Pt(8)
-        p.paragraph_format.space_after  = Pt(3)
-        p.add_run().add_picture(path, width=Inches(w))
-        if cap:
-            caption(cap)
+    p_info = doc.add_paragraph()
+    p_info.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+    p_info.paragraph_format.space_before = Pt(160)
+    p_info.paragraph_format.line_spacing = 1.5
+    
+    r_n = p_info.add_run("pravallika kalangi\n")
+    r_n.font.name = 'Times New Roman'
+    r_n.font.size = Pt(14)
+    r_n.font.bold = True
 
-    def add_tbl_border(tbl):
-        for row in tbl.rows:
-            for cell in row.cells:
-                tcp = cell._tc.get_or_add_tcPr()
-                tcp.append(parse_xml(
-                    r'<w:tcBorders %s>'
-                    r'<w:top    w:val="single" w:sz="4" w:color="B0C4DE"/>'
-                    r'<w:bottom w:val="single" w:sz="4" w:color="B0C4DE"/>'
-                    r'<w:left   w:val="single" w:sz="4" w:color="B0C4DE"/>'
-                    r'<w:right  w:val="single" w:sz="4" w:color="B0C4DE"/>'
-                    r'</w:tcBorders>' % nsdecls("w")
-                ))
+    r_r = p_info.add_run("24VV1F0044\n")
+    r_r.font.name = 'Times New Roman'
+    r_r.font.size = Pt(14)
 
-    # ════════════════════════════════════════════════════════════════
-    # COVER PAGE
-    # ════════════════════════════════════════════════════════════════
-    # Institution label
-    inst = doc.add_paragraph()
-    inst.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    inst.paragraph_format.space_before = Pt(0)
-    inst.paragraph_format.space_after  = Pt(6)
-    ri = inst.add_run("PROJECT TECHNICAL REPORT")
-    ri.font.name = "Calibri"; ri.font.size = Pt(13)
-    ri.font.color.rgb = C_GRAY; ri.font.bold = True
-
-    # Main title
-    title_p = doc.add_paragraph()
-    title_p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title_p.paragraph_format.space_before = Pt(24)
-    title_p.paragraph_format.space_after  = Pt(14)
-    rt = title_p.add_run(
-        "SentinelGPT: An AI-Powered Large Language Model\n"
-        "Framework for Advanced Cyber Threat Detection\n"
-        "and Analysis"
-    )
-    rt.font.name = "Calibri"; rt.font.size = Pt(24)
-    rt.font.bold = True; rt.font.color.rgb = C_DARK
-
-    # Tagline
-    tag = doc.add_paragraph()
-    tag.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    tag.paragraph_format.space_after = Pt(36)
-    rg = tag.add_run(
-        "Real-time AI-powered cybersecurity monitoring, autonomous threat detection,\n"
-        "and intelligent incident response dashboard"
-    )
-    rg.font.name = "Calibri"; rg.font.size = Pt(12)
-    rg.font.italic = True; rg.font.color.rgb = C_GRAY
-
-    # Horizontal rule via a simple table row
-    hr = doc.add_table(rows=1, cols=1)
-    hr.style = "Table Grid"
-    hr.rows[0].cells[0].paragraphs[0].text = ""
-    hr.rows[0].height = Pt(2)
-    hr.rows[0].cells[0]._tc.get_or_add_tcPr().append(
-        parse_xml(r'<w:shd %s w:val="clear" w:color="auto" w:fill="003366"/>' % nsdecls("w"))
-    )
-
-    # Meta info table
-    doc.add_paragraph().paragraph_format.space_after = Pt(6)
-    meta = doc.add_table(rows=6, cols=2)
-    meta.alignment = WD_TABLE_ALIGNMENT.CENTER
-    meta_rows = [
-        ("Project Title:",    "SentinelGPT: An AI-Powered LLM Framework for Advanced Cyber Threat Detection"),
-        ("Submitted by:",     "Pravallika Kalangi"),
-        ("Roll Number:",      "24VV1F0044"),
-        ("Programme:",        "Master of Computer Applications (MCA) — 2nd Year"),
-        ("Live Deployment:",  "https://sentinelgpt-ai.vercel.app"),
-        ("GitHub Repository:","https://github.com/Pravallika2025/sentigraud-ai-.git"),
-    ]
-    for i,(k,v) in enumerate(meta_rows):
-        cells = meta.rows[i].cells
-        cells[0].paragraphs[0].paragraph_format.space_after = Pt(4)
-        cells[1].paragraphs[0].paragraph_format.space_after = Pt(4)
-        rb = cells[0].paragraphs[0].add_run(k)
-        rb.font.name = "Calibri"; rb.font.bold = True; rb.font.color.rgb = C_DARK
-        rv = cells[1].paragraphs[0].add_run(v)
-        rv.font.name = "Calibri"; rv.font.size = Pt(11)
-    add_tbl_border(meta)
+    r_y = p_info.add_run("MCA 2nd year\n")
+    r_y.font.name = 'Times New Roman'
+    r_y.font.size = Pt(14)
 
     doc.add_page_break()
 
-    # ════════════════════════════════════════════════════════════════
-    # 1. PROBLEM STATEMENT
-    # ════════════════════════════════════════════════════════════════
-    h1("1.  Problem Statement")
-    para(
-        "Modern cybersecurity operations face severe challenges managing the overwhelming volume of "
-        "network telemetry and security alerts generated by enterprise IT infrastructure. Security "
-        "Information and Event Management (SIEM) systems process millions of event logs, network probes, "
-        "and API requests daily. Many organizations still rely heavily on manual log inspection, static "
-        "firewall rules, and fragmented monitoring tools — creating serious operational bottlenecks, "
-        "severe analyst alert fatigue, and dangerously slow incident response times that allow threats "
-        "to propagate unchecked through internal networks."
-    )
-    para(
-        "A central challenge is identifying sophisticated multi-stage attacks such as credential stuffing, "
-        "Distributed Denial of Service (DDoS) vectors, SQL injection payloads, and brute-force "
-        "authentication spikes. Traditional rule-based intrusion detection systems generate high rates of "
-        "false positives while failing to correlate anomalous network behavior with recognized attack "
-        "frameworks like MITRE ATT&CK. Manual quarantine procedures further delay response, exposing "
-        "internal networks to lateral movement and unauthorized data exfiltration."
-    )
-    para(
-        "Existing security dashboards lack transparent decision-making, intelligent payload analysis, and "
-        "real-time visualization. Analysts are left without instant remediation guidance, unsure why a "
-        "specific threat score was assigned or which immediate countermeasures to execute."
-    )
-    para(
-        "To address these challenges, this project presents SentinelGPT — an AI-Powered Large Language "
-        "Model Framework for Advanced Cyber Threat Detection and Analysis. The system uses intelligent "
-        "software agents to automatically monitor network telemetry, compute risk scores via heuristic "
-        "anomaly algorithms, map threats to MITRE ATT&CK techniques, and autonomously quarantine "
-        "high-risk IP addresses — drastically reducing manual effort and incident response latency."
-    )
+    # ==========================================================================
+    # PAGE 2: PROBLEM STATEMENT (Matching Screenshot Page 2)
+    # ==========================================================================
+    add_heading_1("Problem statement")
+    
+    add_para("Preparing and managing enterprise cybersecurity operations is a challenging and time-consuming task for modern organizations. Every day, security administrators must analyze incoming network packets, monitor server logs, track potential vulnerabilities, and isolate malicious IP addresses while ensuring that all operational protocols and data protection constraints are satisfied. In many organizations, this process is still performed manually or using basic logging applications, which often leads to alert fatigue, missed security threats, repeated operational delays, and increased administrative effort. As the number of network nodes, cloud microservices, and connected devices increases, cybersecurity management becomes more complex and difficult to execute efficiently.")
 
-    # ════════════════════════════════════════════════════════════════
-    # DIFFERENCE TABLE
-    # ════════════════════════════════════════════════════════════════
-    h1("2.  Difference: Traditional System vs. Proposed SentinelGPT")
-    para(
-        "The table below contrasts conventional security operations with the proposed SentinelGPT "
-        "AI-powered system across key operational dimensions:"
-    )
+    add_para("One of the major challenges is avoiding delayed incident response and lateral threat movement. A malicious attacker or compromise attempt may target multiple endpoints across different network segments simultaneously, making it difficult for human security analysts to detect correlated attacks in real time. Automated firewall quarantine is another critical issue because threat isolation requires continuous, immediate enforcement and should not be delayed by manual administrative review. In addition, every threat event must receive proper risk scoring according to established cybersecurity frameworks, and security monitoring must maintain uninterrupted 24/7 surveillance without creating security blind spots.")
 
-    dt = doc.add_table(rows=9, cols=2)
-    dt.style = "Table Grid"
-    dt.alignment = WD_TABLE_ALIGNMENT.CENTER
-    # Header row shading
-    for cell, txt in zip(dt.rows[0].cells, ["Traditional Security System","Proposed SentinelGPT System"]):
-        cell._tc.get_or_add_tcPr().append(
-            parse_xml(r'<w:shd %s w:val="clear" w:color="auto" w:fill="003366"/>' % nsdecls("w"))
-        )
-        pr = cell.paragraphs[0]
-        pr.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        r = pr.add_run(txt); r.bold = True
-        r.font.color.rgb = RGBColor(0xFF,0xFF,0xFF); r.font.name = "Calibri"; r.font.size = Pt(11)
+    add_para("Traditional security management methods also lack flexibility, transparency, and real-time visualization. Even a minor change in network traffic patterns or threat vectors often requires administrators to manually reconfigure rules or re-evaluate historical logs. Identifying and resolving complex security incidents consumes significant time and increases the possibility of human error. Furthermore, many existing systems do not provide clear explanations of security decisions, interactive threat analytics, or dynamic incident remediation recommendations.")
 
-    rows_data = [
-        ("Manual log inspection; static firewall rules; delayed response.",
-         "Autonomous agents monitor telemetry 24/7 with zero manual input required."),
-        ("High alert fatigue; delayed incident detection.",
-         "Heuristic scoring (0–100) eliminates alert fatigue; threats detected instantly."),
-        ("IP blocking requires manual admin intervention and rule updates.",
-         "Autonomous Quarantine Agent auto-isolates IPs scoring ≥75 in real time."),
-        ("Lacks standardized MITRE ATT&CK threat-framework alignment.",
-         "All incidents automatically mapped to MITRE ATT&CK tactics and techniques."),
-        ("Triage requires lengthy manual research by analysts.",
-         "Integrated AI Triage Assistant delivers instant remediation guidance."),
-        ("Limited real-time visualization of threat velocity.",
-         "Glassmorphic dashboard with live telemetry charts and perimeter heatmaps."),
-        ("Payload analysis performed manually with external tools.",
-         "Built-in Payload Scanner auto-analyzes files with verdict reports."),
-        ("Incident data export requires manual log collection.",
-         "Instant JSON incident-log export via REST API (/api/export)."),
-    ]
-    for i,(l,r) in enumerate(rows_data):
-        cells = dt.rows[i+1].cells
-        # Alternate row shading
-        if i % 2 == 0:
-            for c in cells:
-                c._tc.get_or_add_tcPr().append(
-                    parse_xml(r'<w:shd %s w:val="clear" w:color="auto" w:fill="EEF4FB"/>' % nsdecls("w"))
-                )
-        cells[0].paragraphs[0].add_run(l).font.name = "Calibri"
-        cells[1].paragraphs[0].add_run(r).font.name = "Calibri"
-        for c in cells:
-            c.paragraphs[0].paragraph_format.space_before = Pt(3)
-            c.paragraphs[0].paragraph_format.space_after  = Pt(3)
+    add_para("To address these challenges, this project proposes SentinelGPT: An AI-Powered Large Language Model Framework for Advanced Cyber Threat Detection and Analysis. The system uses intelligent software agents to automatically generate threat assessments, validate network security posture, calculate risk scores using heuristic algorithms, dynamically map threats to MITRE ATT&CK techniques, and execute autonomous quarantine actions. It also provides a web-based dashboard for threat management, incident analysis, live telemetry visualization, AI triage assistant interaction, and log export. By automating threat detection and response, the proposed system reduces manual effort, minimizes incident response times, improves threat accuracy, and provides an efficient, reliable, and user-friendly solution for enterprise cybersecurity operations.")
 
     doc.add_page_break()
 
-    # ════════════════════════════════════════════════════════════════
-    # 3. PROPOSED SYSTEM
-    # ════════════════════════════════════════════════════════════════
-    h1("3.  Proposed Solution & System Overview")
-    para(
-        "SentinelGPT is an intelligent, full-stack, cloud-native cyber defense application that automates "
-        "threat detection, security monitoring, and incident mitigation. It uses intelligent software agents "
-        "that continuously evaluate network telemetry against heuristic scoring models and security policies, "
-        "replacing slow manual workflows with instant automated decisions."
-    )
-    para(
-        "The Telemetry Monitor Agent analyzes packet rates, IP origins, and request patterns to compute a "
-        "risk score (0–100). Each incident is mapped to a MITRE ATT&CK technique (e.g., T1078 Valid Accounts, "
-        "T1498 Network DoS, T1190 Exploit Public App) and enriched with AI-driven remediation guidance. "
-        "When a score reaches or exceeds 75, the Autonomous Quarantine Agent immediately isolates the "
-        "offending IP in the database — providing administrators full manual override and revocation control."
-    )
+    # ==========================================================================
+    # PAGE 3: DIFFERENCE TABLE (Matching Screenshot Page 3)
+    # ==========================================================================
+    add_heading_1("Difference Between Traditional Security Operations and the Proposed Agentic AI-Based SentinelGPT System")
 
-    # ════════════════════════════════════════════════════════════════
-    # 4. SYSTEM ARCHITECTURE
-    # ════════════════════════════════════════════════════════════════
-    h1("4.  System Architecture")
-    para(
-        "SentinelGPT follows a modular, decoupled architecture. The operator authenticates via the React "
-        "SPA frontend, which connects to the FastAPI backend controller for telemetry snapshots and "
-        "WebSocket streaming. Two intelligent agents process telemetry: the Telemetry Monitor Agent "
-        "(anomaly scoring + MITRE ATT&CK mapping) and the Autonomous Quarantine Agent (IP isolation + "
-        "validation). All incident logs and quarantine data are stored via SQLAlchemy ORM in SQLite."
-    )
-    img_center(arch_img, w=5.9, cap="Figure 1: SentinelGPT End-to-End System Architecture")
+    add_para("Traditional security monitoring is done manually using paper records, basic log viewers, or simple firewall management software. It requires more time and effort and may result in response delays and human error. The proposed Agentic AI-Based SentinelGPT System automates threat detection and mitigation using intelligent software agents. It reduces manual work, improves accuracy, and provides features such as real-time telemetry visualization, heuristic anomaly scoring, automated quarantine, AI triage assistance, and log export. The table below shows the comparison between the traditional system and the proposed system. The following table highlights the major differences between the traditional security operations system and the proposed Agentic AI-based system.")
 
-    # ════════════════════════════════════════════════════════════════
-    # 5. TECHNOLOGIES USED
-    # ════════════════════════════════════════════════════════════════
-    h1("5.  Technologies Used")
+    diff_table = doc.add_table(rows=10, cols=2)
+    diff_table.alignment = WD_TABLE_ALIGNMENT.CENTER
+    diff_table.style = 'Table Grid'
 
-    h2("Frontend Stack")
-    for lbl, desc in [
-        ("React 19: ", "UI library for dynamic glassmorphic component trees and real-time state management."),
-        ("Vite 5.4: ", "Next-gen build tool — fast Hot Module Replacement and optimized production bundles."),
-        ("Recharts: ", "Data visualization library — threat velocity charts, risk gauges, severity donuts."),
-        ("Web Audio API: ", "Browser-native alarm system that plays audio alerts on critical threat detection."),
-    ]:
-        bullet(lbl, desc)
+    hdr_cells = diff_table.rows[0].cells
+    hdr_cells[0].paragraphs[0].add_run("Traditional Security Operations System").bold = True
+    hdr_cells[1].paragraphs[0].add_run("Proposed Agentic AI Based SentinelGPT System").bold = True
 
-    h2("Backend Stack")
-    for lbl, desc in [
-        ("Python 3.11+: ", "Core language for agent logic, threat heuristics, and database models."),
-        ("FastAPI: ", "Async, high-performance framework — RESTful API, WebSockets, auto Swagger docs."),
-        ("Uvicorn: ", "ASGI server for local development and Vercel serverless function routing."),
-        ("PyJWT: ", "HS256 JSON Web Token generation and validation — 8-hour expiring sessions."),
-    ]:
-        bullet(lbl, desc)
+    table_data = [
+        ("Security alerts are monitored manually using basic log viewers or static firewall software.",
+         "Threats are detected and analyzed automatically using intelligent software agents based on heuristic security models."),
+        ("Requires significant manual effort and considerable time to evaluate network threats.",
+         "Reduces manual effort and analyzes threats efficiently within a fraction of a second."),
+        ("Network packet anomalies must be reviewed manually, increasing the risk of security breaches.",
+         "Automatically verifies network telemetry and prevents malicious IP addresses from compromising system resources."),
+        ("Firewall quarantine rules may be applied in non-continuous intervals or conflict with active rules.",
+         "Automatically allocates firewall quarantine rules in real time while maintaining strict security policies."),
+        ("Incident priority scores are manually estimated, which may lead to incorrect threat assessments.",
+         "Ensures every incident receives an accurate risk score (0-100) through automatic heuristic validation."),
+        ("Threat remediation requires manual analysis and repeated verification of security logs.",
+         "Supports quick AI-driven triage generation and instant security remediation guidance."),
+        ("Security incidents and false positives are difficult to identify and resolve manually.",
+         "Uses an Autonomous Quarantine Agent to automatically detect and eliminate high-risk threats before system compromise."),
+        ("Provides limited information about how security decisions and threat scores are made.",
+         "Maintains detailed agent logs and MITRE ATT&CK mapping that record security activities for better transparency."),
+        ("Security reports often require manual formatting before sharing with executive teams.",
+         "Generates structured JSON incident logs and interactive reports that can be exported directly."),
+    ]
 
-    h2("Database & Deployment")
-    for lbl, desc in [
-        ("SQLAlchemy ORM: ", "Type-safe Python ORM for all database reads and writes."),
-        ("SQLite: ", "Lightweight relational DB for incident logs, quarantine data, and user accounts."),
-        ("Vercel Serverless: ", "Cloud host serving React static build and Python API functions at the edge."),
-        ("GitHub Actions: ", "CI/CD pipeline — automated build and deploy on every push to main."),
-    ]:
-        bullet(lbl, desc)
+    for idx, (trad_text, prop_text) in enumerate(table_data, start=1):
+        r_cells = diff_table.rows[idx].cells
+        r_cells[0].paragraphs[0].add_run(trad_text)
+        r_cells[1].paragraphs[0].add_run(prop_text)
 
     doc.add_page_break()
 
-    # ════════════════════════════════════════════════════════════════
-    # 6. ARCHITECTURE FLOW / AGENTS
-    # ════════════════════════════════════════════════════════════════
-    h1("6.  Architecture Flow & Agents Used")
-    img_center(workflow_img, w=6.0, cap="Figure 2: Agent Workflow — From Telemetry Ingestion to SOC Output")
+    # ==========================================================================
+    # PAGE 4: PROPOSED SYSTEM (Matching Screenshot Page 4)
+    # ==========================================================================
+    add_heading_1("Proposed System")
 
-    h2("Agent 1 — Telemetry Monitor & Threat Detection Agent")
-    para(
-        "Continuously inspects incoming network log events, extracts IP details, computes a heuristic "
-        "risk score (0–100), and assigns a MITRE ATT&CK tactic/technique tag. Produces a structured "
-        "SOC Incident payload persisted to the database and streamed live to the frontend dashboard."
-    )
+    add_para("The proposed Agentic AI Based SentinelGPT System is an intelligent web-based application developed to automate the process of cyber threat detection, network monitoring, and incident management. The system is designed to reduce the time, effort, and errors involved in manual security operations by using intelligent software agents that analyze telemetry and validate security policies based on predefined cybersecurity constraints.")
 
-    h2("Agent 2 — Autonomous Quarantine & Validation Agent")
-    para(
-        "Evaluates every incident against the severity threshold (≥75 = Critical/High). Qualifying "
-        "incidents are automatically written to the Blocked IPs table, quarantining the offending IP. "
-        "The agent validates revoke requests and generates AI-driven remediation advice to prevent "
-        "false-positive lockouts."
-    )
+    add_para("The system allows the security administrator to monitor parameters such as source IP address, target endpoint, payload signature, attack type (such as DDoS, SQL injection, or brute force), and required risk threshold. Based on these inputs, the Telemetry Monitor Agent automatically creates threat assessments by evaluating network traffic against heuristic models while ensuring that all security rules are followed. It gives priority to critical vulnerability vectors by assigning them immediate risk scores and ensures that anomalous traffic does not cross perimeter boundaries. The system also checks active IP quarantine status across all network nodes to prevent unauthorized access.")
 
-    h1("7.  Algorithms Used")
-    for lbl, desc in [
-        ("Heuristic Threat Scoring: ",
-         "Evaluates request velocity, payload anomaly patterns, and IP reputation to produce a "
-         "normalized 0–100 risk score without relying solely on static signatures."),
-        ("Severity Matrix Classifier: ",
-         "Maps scores to Critical (≥75), High (60–74), Medium (40–59), and Low (<40) priority "
-         "tiers — driving the automated quarantine and alerting logic."),
-        ("Velocity Rate Anomaly Detector: ",
-         "Monitors burst traffic spikes per IP over sliding time windows to detect active DDoS "
-         "attacks and port-scan sweeps."),
-    ]:
-        bullet(lbl, desc)
+    add_para("After threat assessment generation, the Autonomous Quarantine Agent verifies the detected security events by checking whether each incident has been assigned the correct priority score, firewall isolation rules remain active, security policies are preserved, and no malicious IP is permitted to execute unauthorized requests. If any high-risk violation (score >= 75) is detected, the offending IP is automatically quarantined until administrator review.")
 
-    # ════════════════════════════════════════════════════════════════
-    # 8. IMPLEMENTATION PHASES
-    # ════════════════════════════════════════════════════════════════
-    h1("8.  Implementation Phases")
-    phases = [
-        ("Phase 1 — Requirement Analysis:", " Identified SOC pain points, defined scoring metrics, mapped MITRE ATT&CK coverage."),
-        ("Phase 2 — System Design:",        " Architected decoupled React SPA + FastAPI serverless backend; finalized API contracts."),
-        ("Phase 3 — Database Schema:",      " Designed ORM models — Users, SOC Incidents, Perimeter Logs, Blocked IPs."),
-        ("Phase 4 — Frontend Development:", " Built glassmorphic components — ThreatChart, RiskGauge, BlockedIPs, Login, Dashboard."),
-        ("Phase 5 — Backend & JWT Auth:",   " Implemented REST routes (/api/snapshot, /api/block_ip, /api/sim_threat) with HS256 JWT."),
-        ("Phase 6 — Agentic AI Dev:",       " Programmed Telemetry Monitor Agent and Autonomous Quarantine Agent workflows."),
-        ("Phase 7 — Integration Testing:",  " Simulated threat injection to verify scoring accuracy, quarantine triggers, and revocation."),
-        ("Phase 8 — Cloud Deployment:",     " Deployed full-stack to Vercel Serverless; verified Swagger docs in production."),
-    ]
-    for lbl, desc in phases:
-        bullet(lbl, desc)
+    add_para("The system provides a user-friendly dashboard where administrators can view live telemetry, trigger manual threat simulations, inspect incident histories, manage quarantine lists, interact with an AI triage assistant, and clear logs. All detected incidents are securely stored in the database, allowing easy retrieval and future security audits. The application also maintains detailed agent logs that record every important security decision taken during threat analysis and quarantine, making the process transparent and easy to debug.")
 
-    # ════════════════════════════════════════════════════════════════
-    # 9. APPLICATIONS
-    # ════════════════════════════════════════════════════════════════
-    h1("9.  Applications")
-    apps = [
-        ("Enterprise SOC Operations:", " Continuous perimeter monitoring and automated response for dedicated security teams."),
-        ("Financial Institutions:",    " Protects banking portals from credential stuffing, brute-force, and fraud attempts."),
-        ("Cloud Service Providers:",   " Safeguards serverless APIs and microservices from unauthorized probes and exploits."),
-        ("Healthcare Networks:",       " Secures patient data endpoints against ransomware and malware payload injection."),
-        ("E-Commerce Platforms:",      " Prevents DDoS and SQL injection attacks during high-traffic sales events."),
-        ("Academic Institutions:",     " Monitors campus networks and prevents faculty/student account hijacking."),
-    ]
-    for lbl, desc in apps:
-        bullet(lbl, desc)
+    add_para("Additionally, the system supports structured JSON log export and RESTful API access, enabling security teams to integrate SentinelGPT with external SIEM tools. By combining intelligent threat detection, automated quarantine validation, secure data management, and an interactive web interface, the proposed system provides a reliable, efficient, and scalable solution for enterprise cybersecurity management. It minimizes manual effort, improves detection accuracy, eliminates response delays, and enhances the overall security posture of modern organizations.")
 
     doc.add_page_break()
 
-    # ════════════════════════════════════════════════════════════════
-    # 10. UI SCREENSHOTS
-    # ════════════════════════════════════════════════════════════════
-    h1("10.  User Interface Screenshots")
-    para("The following figures depict the live operational screens of the SentinelGPT system:", justify=False)
+    # ==========================================================================
+    # PAGE 5: SYSTEM ARCHITECTURE (Matching Screenshot Page 5)
+    # ==========================================================================
+    add_heading_1("System Architecture")
 
-    # 2 × 2 screenshot grid
-    def two_col(p1, c1, p2, c2):
-        t = doc.add_table(rows=2, cols=2)
-        t.alignment = WD_TABLE_ALIGNMENT.CENTER
-        for row in t.rows:
-            for cell in row.cells:
-                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-                tcp = cell._tc.get_or_add_tcPr()
-                tcp.append(parse_xml(
-                    r'<w:tcBorders %s>'
-                    r'<w:top w:val="none"/><w:bottom w:val="none"/>'
-                    r'<w:left w:val="none"/><w:right w:val="none"/>'
-                    r'</w:tcBorders>' % nsdecls("w")
-                ))
-        for cell, ip in zip(t.rows[0].cells, [p1, p2]):
-            pp = cell.paragraphs[0]
-            pp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            pp.paragraph_format.space_before = Pt(6)
-            pp.paragraph_format.space_after  = Pt(2)
-            if os.path.exists(ip):
-                pp.add_run().add_picture(ip, width=Inches(2.95))
-        for cell, cap in zip(t.rows[1].cells, [c1, c2]):
-            pp = cell.paragraphs[0]
-            pp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            pp.paragraph_format.space_after = Pt(8)
-            r = pp.add_run(cap); r.font.italic = True
-            r.font.size = Pt(9.5); r.font.color.rgb = C_GRAY
+    add_para("The Agentic AI Based SentinelGPT System follows a modular architecture in which each component performs a specific security task. The system starts when the administrator logs in using a valid username and password. After successful authentication, the administrator accesses the security operations dashboard to monitor live telemetry, inspect network anomalies, and review risk metrics.")
 
-    two_col(IMG_DASHBOARD, "Fig 3: SentinelGPT SOC Operations Dashboard",
-            IMG_LOGIN,     "Fig 4: Operator Authentication Portal")
-    two_col(IMG_CHAT,      "Fig 5: AI Threat Triage Assistant",
-            IMG_SCANNER,   "Fig 6: Heuristic Payload File Scanner")
+    add_para("The entered information and network requests are sent to the FastAPI backend, which acts as the central controller of the system. It receives user requests, processes API calls, manages authentication tokens, and coordinates communication between different security modules of the application.")
 
-    # ════════════════════════════════════════════════════════════════
-    # 11. API TABLE
-    # ════════════════════════════════════════════════════════════════
-    h1("11.  REST API Endpoints")
-    para("The backend exposes the following endpoints for telemetry, quarantine control, and authentication:")
+    add_para("The backend first sends telemetry data to the Telemetry Monitor Agent, which automatically evaluates the security events. It gives priority to high-risk attack vectors by calculating heuristic anomaly scores (0-100) and ensures that threat classifications dynamically map to recognized MITRE ATT&CK techniques. After evaluating network traffic, it assigns risk categories (Critical, High, Medium, Low) while checking IP reputation and avoiding security conflicts across different network segments.")
 
-    at = doc.add_table(rows=7, cols=3)
-    at.style = "Table Grid"
-    at.alignment = WD_TABLE_ALIGNMENT.CENTER
-    for cell, txt in zip(at.rows[0].cells, ["Endpoint", "Method", "Description"]):
-        cell._tc.get_or_add_tcPr().append(
-            parse_xml(r'<w:shd %s w:val="clear" w:color="auto" w:fill="003366"/>' % nsdecls("w"))
-        )
-        r = cell.paragraphs[0].add_run(txt)
-        r.bold = True; r.font.color.rgb = RGBColor(0xFF,0xFF,0xFF)
-        r.font.name = "Calibri"
+    add_para("Once threat assessments are generated, they are passed to the Autonomous Quarantine Agent. This agent verifies that all security rules are satisfied. It checks whether each incident has an accurate risk score, confirms that quarantine thresholds remain enforced, ensures continuous perimeter protection, and verifies that high-risk malicious IPs are blocked immediately from executing further API calls.")
 
-    api_data = [
-        ("/api/login",      "POST", "Authenticates operator; returns 8-hour JWT token"),
-        ("/api/register",   "POST", "Creates new operator account with hashed password"),
-        ("/api/snapshot",   "GET",  "Returns telemetry snapshot, incident logs & quarantine list"),
-        ("/api/block_ip",   "POST", "Adds target IP address to active firewall quarantine"),
-        ("/api/unblock_ip", "POST", "Revokes quarantine for target IP address"),
-        ("/api/export",     "GET",  "Downloads full incident history as JSON"),
-    ]
-    for i,(ep,method,desc) in enumerate(api_data):
-        cells = at.rows[i+1].cells
-        if i % 2 == 0:
-            for c in cells:
-                c._tc.get_or_add_tcPr().append(
-                    parse_xml(r'<w:shd %s w:val="clear" w:color="auto" w:fill="EEF4FB"/>' % nsdecls("w"))
-                )
-        for c, t in zip(cells, [ep, method, desc]):
-            c.paragraphs[0].add_run(t).font.name = "Calibri"
+    add_para("After successful validation, security incidents and quarantine status are stored in the database. The database contains four main ORM tables: the Users table for administrator credentials and roles, the SOC Incidents table for storing threat configurations and risk scores, the Perimeter Logs table for network traffic metrics, and the Blocked IPs table for recording active quarantine lists enforced by the intelligent agents.")
 
-    # ════════════════════════════════════════════════════════════════
-    # 12. CONCLUSION
-    # ════════════════════════════════════════════════════════════════
-    h1("12.  Conclusion")
-    para(
-        "SentinelGPT demonstrates that integrating Agentic AI with a modern full-stack serverless "
-        "architecture can transform traditional reactive security operations into a proactive, automated "
-        "cyber defense system. By replacing manual log review with autonomous software agents, the platform "
-        "eliminates alert fatigue, reduces incident response latency to near zero, and provides continuous "
-        "24/7 network perimeter protection — establishing a strong foundation for next-generation "
-        "AI-powered cybersecurity frameworks."
-    )
+    add_para("Finally, stored security data is displayed on the interactive dashboard, where administrators can view live threat velocity, inspect charts, execute manual IP blocks or unblocks, trigger test threats, or clear logs whenever necessary. The system also allows incident reports to be exported as structured JSON data for security compliance.")
 
-    h1("13.  References")
-    refs = [
-        "FastAPI Documentation — https://fastapi.tiangolo.com/",
-        "React 19 Docs — https://react.dev/",
-        "MITRE ATT&CK Framework — https://attack.mitre.org/",
-        "SQLAlchemy ORM — https://docs.sqlalchemy.org/",
-        "Vercel Platform Docs — https://vercel.com/docs",
-        "Russell, S. & Norvig, P. (2021). Artificial Intelligence: A Modern Approach (4th ed.). Pearson.",
-    ]
-    for i, ref in enumerate(refs, 1):
-        bullet(f"[{i}]  ", ref)
+    add_para("The modular design of the system improves reliability, reduces manual effort, eliminates response latency, and provides an efficient solution for enterprise cybersecurity operations.")
 
-    h1("14.  Live Deployment & GitHub Links")
-    bullet("Single Live Dashboard Link:  ", "https://sentinelgpt-ai.vercel.app")
-    bullet("Interactive Swagger API Docs: ", "https://sentinelgpt-ai.vercel.app/docs")
-    bullet("Official GitHub Repository:   ", "https://github.com/Pravallika2025/sentigraud-ai-.git")
+    doc.add_page_break()
 
-    # ── Save ──────────────────────────────────────────────────────
-    for path in save_paths:
-        doc.save(path)
-        print(f"Saved: {path}")
+    # ==========================================================================
+    # PAGE 6: ARCHITECTURE DIAGRAM & TECHNOLOGIES (Matching Screenshot Page 6)
+    # ==========================================================================
+    add_centered_image(arch_img, width_inches=5.8)
 
-# ─────────────────────────────────────────────────────────────────────────────
+    add_heading_1("Technologies Used")
+    add_para("The Agentic AI Based SentinelGPT System is developed using a combination of modern frontend, backend, database, and AI technologies. These technologies work together to automate threat monitoring, manage security schedules efficiently, and provide a secure and user-friendly web application. The technology stack used in this project is described below.")
+
+    add_heading_2("1. Frontend Technologies")
+    add_para("The frontend provides an interactive and user-friendly interface through which administrators can access all system features such as login, dashboard monitoring, threat inspection, firewall quarantine control, AI triage assistant chat, and log export.")
+
+    add_subheading = lambda t: add_para("", bold_prefix=f"{t}\n")
+    
+    add_subheading("HTML5")
+    add_para("HTML5 is used to create the structure of all web pages, including the login page, operations dashboard, threat management views, AI assistant panel, and report export templates.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 7: FRONTEND & BACKEND TECHNOLOGIES (Matching Screenshot Page 7)
+    # ==========================================================================
+    add_subheading("CSS3 & Glassmorphism")
+    add_para("CSS3 is used to design an attractive and responsive user interface. It styles forms, buttons, cards, dashboard charts, navigation menus, and cyberpunk glassmorphic layouts to improve the user experience.")
+
+    add_subheading("JavaScript & React 19")
+    add_para("JavaScript and React 19 are used to provide client-side interactivity, handle user actions, validate form inputs, and dynamically update webpage content without refreshing the entire page. React 19 manages state updates efficiently.")
+
+    add_subheading("Vite 5.4")
+    add_para("Vite 5.4 is the build tool and development server used to serve the single-page application (SPA). It provides ultra-fast Hot Module Replacement (HMR) and packages production builds into static bundles.")
+
+    add_heading_2("2. Backend Technologies")
+    add_para("The backend contains the core business logic of the application. It processes administrator requests, manages threat scoring, validates security policies, and communicates with the database.")
+
+    add_subheading("Python 3.11+")
+    add_para("Python is the primary programming language used to implement the application logic, threat scoring algorithms, validation rules, database ORM operations, and overall system functionality.")
+
+    add_subheading("FastAPI")
+    add_para("FastAPI is the backend framework used to develop the web application. It handles routing, JWT authentication, session management, API requests, threat processing, and communication between the frontend and database.")
+
+    add_subheading("Uvicorn")
+    add_para("Uvicorn is the ASGI server used to run the FastAPI application. It processes client requests efficiently and delivers fast responses to users.")
+
+    add_heading_2("3. Agentic AI Technologies")
+    add_para("The intelligent functionality of the system is implemented using custom software agents.")
+
+    add_subheading("Telemetry Monitor Agent")
+    add_para("The Telemetry Monitor Agent automatically analyzes threat events by calculating heuristic risk scores (0-100) while considering packet velocity, IP reputation, attack signatures, and MITRE ATT&CK technique mapping.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 8: AGENTS, DATABASE, TOOLS (Matching Screenshot Page 8)
+    # ==========================================================================
+    add_subheading("Autonomous Quarantine Agent")
+    add_para("The Autonomous Quarantine Agent verifies generated security events by checking risk score thresholds (score >= 75), enforcing active firewall IP quarantine, validating manual revoke requests, and generating AI remediation advice before finalizing incident status.")
+
+    add_heading_2("4. Database Technologies")
+    add_para("The database stores all application data securely and allows efficient retrieval of security incident information.")
+
+    add_subheading("SQLAlchemy ORM")
+    add_para("SQLAlchemy acts as the Object Relational Mapper (ORM), allowing Python programs to interact with database tables without writing raw SQL queries manually.")
+
+    add_subheading("SQLite")
+    add_para("SQLite is used as the local development database. It stores administrator details, SOC incidents, perimeter logs, and blocked IP quarantine records during development and testing.")
+
+    add_subheading("PostgreSQL / Vercel Storage")
+    add_para("PostgreSQL hosted on cloud infrastructure is used as the production database after deployment. It securely stores application data in the cloud and supports multi-user access.")
+
+    add_heading_2("5. Export & API Documentation Technologies")
+
+    add_subheading("Swagger / OpenAPI")
+    add_para("FastAPI automatically generates interactive OpenAPI Swagger documentation at `/docs`, enabling administrators to inspect and execute API endpoints directly from the browser.")
+
+    add_heading_2("6. Development Tools")
+    add_para("The following tools were used during the development of the project:")
+    add_para("Visual Studio Code (VS Code) – Used as the primary code editor.")
+    add_para("Git & GitHub – Used for version control and source code management.")
+    add_para("Python Virtual Environment (venv) – Used to manage project dependencies.")
+    add_para("Requirements.txt – Maintains the list of Python packages required by the application.")
+
+    add_heading_2("7. Deployment Technologies")
+    add_para("The application is designed for both local execution and cloud deployment.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 9: DEPLOYMENT & STACK FLOW DIAGRAM (Matching Screenshot Page 9)
+    # ==========================================================================
+    add_para("SQLite is used during local development.")
+    add_para("PostgreSQL / Vercel Storage is used as the production database.")
+    add_para("Vercel Cloud Platform is used to deploy the full-stack FastAPI and React application online.")
+    add_para("Environment variables are managed using the .env configuration file.")
+
+    add_centered_image(flow_img, width_inches=5.8)
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 10: AGENTS USED & RESPONSIBILITIES (Matching Screenshot Page 10)
+    # ==========================================================================
+    add_heading_1("Agents Used")
+    add_para("The Agentic AI Based SentinelGPT System uses two intelligent software agents to automate the threat detection and response process. Each agent performs a specific task independently, making the system more accurate, efficient, and reliable. The Telemetry Monitor Agent is responsible for analyzing security events and calculating risk scores, while the Autonomous Quarantine Agent verifies that generated threat assessments satisfy all security rules before quarantine is finalized. These agents work together to produce a zero-latency defense workflow with minimal human intervention.")
+
+    add_heading_2("1. Telemetry Monitor Agent")
+    add_para("The Telemetry Monitor Agent is responsible for automatically evaluating threat telemetry based on network inputs provided by system monitoring feeds. It receives inputs such as source IP address, target URL, payload signature, request frequency, and attack type. The agent intelligently calculates risk scores (0-100) and maps threats to MITRE ATT&CK techniques while following predefined security policies.")
+
+    add_heading_2("Responsibilities")
+    add_para("Reads network telemetry and security log events.")
+    add_para("Calculates heuristic anomaly risk scores (0-100).")
+    add_para("Gives priority to critical vulnerability vectors.")
+    add_para("Maps threat behaviors to MITRE ATT&CK tactics.")
+    add_para("Prevents duplicate log processing.")
+    add_para("Generates complete SOC incident payloads automatically.")
+
+    add_heading_2("2. Autonomous Quarantine Agent")
+    add_para("The Autonomous Quarantine Agent verifies threat assessments generated by the Telemetry Monitor Agent. It checks whether all security constraints have been satisfied before an IP quarantine is finalized. If any high-risk threat (score >= 75) is detected, the agent automatically isolates the IP into the quarantine table.")
+
+    add_heading_2("Responsibilities")
+    add_para("Validates priority scores for each security incident.")
+    add_para("Enforces automated IP firewall quarantine.")
+    add_para("Verifies quarantine revocation requests.")
+    add_para("Validates user authorization and JWT tokens.")
+    add_para("Approves quarantine actions only after successful validation.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 11: WORKING OF AGENTS & WORKFLOW (Matching Screenshot Page 11)
+    # ==========================================================================
+    add_heading_1("Working of Agents")
+    add_para("The system ingests network telemetry through web API endpoints or monitoring scripts. The Telemetry Monitor Agent creates threat assessments automatically based on heuristic rules. After generation, the Autonomous Quarantine Agent verifies the incident by checking all security constraints. If validation confirms a critical threat (score >= 75), the offending IP is stored in the Blocked IPs table and displayed on the dashboard. Otherwise, the threat status remains monitored until further activity is detected.")
+
+    add_heading_2("Architecture:")
+
+    add_centered_image(flow_img, width_inches=5.8)
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 12: IMPLEMENTATION PHASES 1-5 (Matching Screenshot Page 12)
+    # ==========================================================================
+    add_heading_1("Implementation")
+    add_para("The development of the Agentic AI Based SentinelGPT System was carried out in several phases. Each phase focused on a specific part of the system to ensure a structured and efficient development process.")
+
+    add_heading_2("Phases:")
+
+    add_heading_2("Phase 1: Requirement Analysis")
+    add_para("The first phase involved identifying the problems in traditional security operations and gathering system requirements. The functional and non-functional requirements were analyzed, including threat detection, risk scoring, MITRE ATT&CK mapping, quarantine enforcement, dashboard management, and JSON log export.")
+
+    add_heading_2("Phase 2: System Design")
+    add_para("In this phase, the overall architecture of the system was designed. The frontend React SPA, backend FastAPI controller, database models, agent workflows, and API modules were planned. The database schema, user interface layouts, and security workflows were also finalized.")
+
+    add_heading_2("Phase 3: Database Design")
+    add_para("The database was designed using SQLAlchemy ORM. Four tables were created:")
+    add_para("Users Table – Stores administrator login credentials and user roles.")
+    add_para("SOC Incidents Table – Stores threat configurations, risk scores, and MITRE ATT&CK data.")
+    add_para("Perimeter Logs Table – Stores raw network traffic and endpoint request metrics.")
+    add_para("Blocked IPs Table – Stores active firewall quarantine records and revocation timestamps.")
+    add_para("SQLite was used for local development, while cloud-hosted PostgreSQL was planned for production deployment.")
+
+    add_heading_2("Phase 4: Frontend Development")
+    add_para("The user interface was developed using HTML5, CSS3, JavaScript, and React 19. Pages such as Login, Dashboard, Threat History, Blocked IPs, AI Assistant Chat, and File Scanner were created to provide an easy-to-use interface for security operators.")
+
+    add_heading_2("Phase 5: Backend Development")
+    add_para("The backend was implemented using Python, FastAPI, and Uvicorn. API routes were developed for administrator authentication, telemetry snapshot retrieval, IP quarantine enforcement, threat simulation, and JSON log export.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 13: IMPLEMENTATION PHASES 6-9 & APPLICATIONS (Matching Screenshot Page 13)
+    # ==========================================================================
+    add_heading_2("Phase 6: Agent Development")
+    add_para("The intelligent software agents were developed during this phase.")
+    add_para("The Telemetry Monitor Agent automatically calculates threat scores by evaluating packet rates and attack signatures while avoiding duplicate alerts.")
+    add_para("The Autonomous Quarantine Agent verifies generated security events by checking risk thresholds, enforcing firewall isolation, and supporting manual revocation.")
+
+    add_heading_2("Phase 7: Threat Generation and Validation")
+    add_para("After evaluating telemetry details, the Telemetry Monitor Agent creates incident records based on security models. The Autonomous Quarantine Agent then verifies the threat to ensure all security rules are satisfied. Only validated threats are processed for automated quarantine.")
+
+    add_heading_2("Phase 8: Testing and Debugging")
+    add_para("The system was tested to verify all functionalities, including administrator login, telemetry visualization, manual IP blocking, quarantine revocation, threat simulation, and database operations. Errors and scoring inconsistencies were identified and corrected to improve system reliability.")
+
+    add_heading_2("Phase 9: Deployment")
+    add_para("The application was prepared for deployment using Vercel Cloud Platform as the hosting provider. Environment variables were configured, and the system was made accessible online through a web browser.")
+
+    add_heading_1("Applications")
+    add_para("The Agentic AI Based SentinelGPT System can be used in various enterprise and institutional environments to simplify and automate cyber threat monitoring. By reducing manual effort and ensuring real-time threat quarantine, the system improves operational efficiency and security accuracy.")
+
+    add_heading_2("Applications")
+
+    add_heading_2("1. Enterprise SOC Centers")
+    add_para("The system can be used to monitor enterprise network perimeters, analyze incoming traffic logs, and execute automated IP quarantine without manual analyst delay.")
+
+    add_heading_2("2. Financial Institutions")
+    add_para("It helps banks and payment gateways automatically detect credential stuffing and brute-force attacks while maintaining continuous security compliance.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 14: APPLICATIONS 3-7 & CONCLUSION (Matching Screenshot Page 14)
+    # ==========================================================================
+    add_heading_2("3. Cloud Infrastructure Providers")
+    add_para("Cloud hosting platforms can use the system to manage complex security requirements across microservices, ensuring real-time threat detection across distributed servers.")
+
+    add_heading_2("4. Healthcare Networks")
+    add_para("Hospitals and healthcare organizations can use the system to secure patient data endpoints, protecting electronic health records from unauthorized malware or ransomware probes.")
+
+    add_heading_2("5. E-Commerce Platforms")
+    add_para("Online retailers can use the system to organize threat monitoring during peak sales events, preventing DDoS disruptions and SQL injection attacks.")
+
+    add_heading_2("6. Educational Organizations")
+    add_para("Universities and certification centers can use the system to protect student portals and administrative databases from credential theft.")
+
+    add_heading_2("7. Academic Administration")
+    add_para("The system assists IT administrators in monitoring, editing, revoking, and exporting threat data through a centralized dashboard, reducing manual work and improving security readiness.")
+
+    add_heading_1("Conclusion")
+    add_para("The Agentic AI Based SentinelGPT System provides an efficient and intelligent solution for automating cyber threat detection and security management. By replacing manual log review with autonomous software agents, the system reduces administrative effort, eliminates response latency, and improves the overall accuracy of threat mitigation. The Telemetry Monitor Agent automatically calculates risk scores based on heuristic security models, while the Autonomous Quarantine Agent verifies that all security constraints, including IP isolation, MITRE ATT&CK mapping, and user authorization, are satisfied before incident status is finalized.")
+
+    add_para("The system offers a user-friendly web interface that enables administrators to monitor, analyze, quarantine, and manage security events with ease. It also maintains agent logs for transparency and supports JSON log export for convenient SIEM integration. Built using FastAPI, Python, SQLAlchemy, HTML5, CSS3, JavaScript, React 19, SQLite, and Vercel, the application is scalable, reliable, and suitable for organizations of different sizes. Overall, the project demonstrates how an agent-based approach can simplify cybersecurity operations, reduce human errors, save time, and provide an effective, modern solution for enterprise cyber defense.")
+
+    doc.add_page_break()
+
+    # ==========================================================================
+    # PAGE 15: REFERENCES & LIVE WEBSITE (Matching Screenshot Page 15)
+    # ==========================================================================
+    add_heading_1("References")
+
+    add_para("FastAPI Documentation. FastAPI. Available at: https://fastapi.tiangolo.com/")
+    add_para("SQLAlchemy Documentation. SQLAlchemy ORM. Available at: https://docs.sqlalchemy.org/")
+    add_para("Python Software Foundation. Python 3 Documentation. Available at: https://docs.python.org/3/")
+    add_para("Uvicorn Documentation. The ASGI Server. Available at: https://www.uvicorn.org/")
+    add_para("React Documentation. React 19 User Interface Library. Available at: https://react.dev/")
+    add_para("Vite Documentation. Vite Next Generation Frontend Tooling. Available at: https://vitejs.dev/")
+    add_para("MDN Web Docs. HTML5, CSS3 and JavaScript Documentation. Available at: https://developer.mozilla.org/")
+    add_para("MITRE ATT&CK Framework. Enterprise Tactics and Techniques. Available at: https://attack.mitre.org/")
+    add_para("SQLite Documentation. SQLite Official Documentation. Available at: https://www.sqlite.org/docs.html")
+    add_para("Vercel Documentation. Deploying Serverless Applications. Available at: https://vercel.com/docs")
+    add_para("Russell, S., & Norvig, P. (2021). Artificial Intelligence: A Modern Approach (4th ed.). Pearson.")
+    add_para("Wooldridge, M. (2009). An Introduction to MultiAgent Systems (2nd ed.). John Wiley & Sons.")
+
+    add_heading_1("Live Website")
+
+    add_para("The application is cloud-ready. To deploy, one sets the DATABASE_URL to a production database instance and ensures the build environment installs all Python dependencies. For example, on Vercel or Cloud platforms, one can configure a Python build and deployment command. The app automatically initializes its database tables on startup and creates a default admin account (prompting to login with secure credentials).")
+
+    add_para("A live instance of this project is available at:")
+    add_para("https://sentinelgpt-ai.vercel.app")
+
+    add_para("The official GitHub repository for source code verification is available at:")
+    add_para("https://github.com/Pravallika2025/sentigraud-ai-.git")
+
+    # Save Word Doc to both paths
+    for save_path in save_paths:
+        doc.save(save_path)
+        print(f"Sample-matching Word Document saved to: {save_path}")
+
 if __name__ == "__main__":
-    build_doc([
+    target_paths = [
         os.path.join(BASE_DIR, "docs", "SentinelGPT_Project_Report.docx"),
-        os.path.join(DESKTOP_DIR, "SentinelGPT_Project_Report.docx"),
-    ])
+        os.path.join(DESKTOP_DIR, "SentinelGPT_Project_Report.docx")
+    ]
+    create_exact_reference_word_document(target_paths)
