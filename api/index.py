@@ -2,17 +2,14 @@ import os
 import time
 import random
 import jwt
-<<<<<<< HEAD
-=======
 import hashlib
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from pydantic import BaseModel
-from sqlalchemy import create_engine, Column, Integer, String, DateTime, desc
+from sqlalchemy import create_engine, Column, Integer, String, DateTime, desc, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -54,8 +51,6 @@ class BlockedIP(Base):
     reason = Column(String, default="Autonomous Quarantine")
     ts = Column(DateTime, default=datetime.utcnow)
 
-<<<<<<< HEAD
-=======
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -70,7 +65,7 @@ class User(Base):
 try:
     # Try querying to see if User table has the new columns
     db_check = SessionLocal()
-    db_check.execute("SELECT role, full_name, organization FROM users LIMIT 1")
+    db_check.execute(text("SELECT role, full_name, organization FROM users LIMIT 1"))
     db_check.close()
 except Exception:
     # If not, recreate tables to match new schema
@@ -78,15 +73,12 @@ except Exception:
         Base.metadata.drop_all(bind=engine)
     except Exception:
         pass
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 Base.metadata.create_all(bind=engine)
 
 # --- SEED INITIAL DATA IF EMPTY ---
 def seed_database_if_needed():
     db = SessionLocal()
     try:
-<<<<<<< HEAD
-=======
         # Seed default role-based credentials if not present
         default_users = [
             ("Admin User", "admin@sentinel.ai", "Admin@123", "Administrator", "Sentinel Security Core"),
@@ -108,7 +100,6 @@ def seed_database_if_needed():
                 db.add(new_user)
         db.commit()
 
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
         if db.query(SOCIncident).count() == 0:
             sample_threats = [
                 ("185.220.101.5", "Credential Stuffing Pattern", 88),
@@ -166,8 +157,6 @@ class SimThreatRequest(BaseModel):
     type: Optional[str] = None
     score: Optional[int] = None
 
-<<<<<<< HEAD
-=======
 class RegisterRequest(BaseModel):
     username: str
     email: str
@@ -176,7 +165,6 @@ class RegisterRequest(BaseModel):
     role: Optional[str] = "Security Analyst"
     organization: Optional[str] = ""
 
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 # --- AUTH HELPERS ---
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -229,13 +217,6 @@ async def login_endpoint(request: Request):
         username = form.get("username", "admin")
         password = form.get("password", "")
 
-<<<<<<< HEAD
-    if password != ADMIN_PASSWORD and password != "admin123":
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    token = create_access_token({"sub": username})
-    return {"access_token": token, "token_type": "bearer"}
-=======
     username_clean = username.strip().lower()
     
     # 1. Check default admin credentials
@@ -251,7 +232,7 @@ async def login_endpoint(request: Request):
             "organization": "Sentinel Security Core"
         }
         
-    # 2. Check database-backed users
+    # 2. Check database-backed users (seeded + registered)
     db = SessionLocal()
     try:
         user = db.query(User).filter((User.username == username_clean) | (User.email == username_clean)).first()
@@ -311,7 +292,6 @@ async def register_endpoint(req: RegisterRequest):
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
     finally:
         db.close()
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 
 @app.get("/snapshot")
 @app.get("/api/snapshot")

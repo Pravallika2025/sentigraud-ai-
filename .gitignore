@@ -27,7 +27,6 @@ firebase-debug.log
 .idea/
 .DS_Store
 Thumbs.db
-<<<<<<< HEAD
-=======
+
+# Vercel
 .vercel
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05

@@ -15,11 +15,7 @@ const BlockedIPs = ({ blocked = [], onUnblock = () => {} }) => {
     if (!tsRaw) return new Date().toLocaleTimeString();
     try {
       return new Date(tsRaw).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-<<<<<<< HEAD
     } catch (e) {
-=======
-    } catch {
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
       return String(tsRaw);
     }
   };

@@ -1,259 +1,266 @@
-<<<<<<< HEAD
-# SentinelGPT - Autonomous Cyber Defense Platform ⚔️
-
-**A fault-tolerant, real-time cybersecurity monitoring platform built with FastAPI, React, and SQLAlchemy — fully configured for single-click Vercel Serverless deployment.**
-
-SentinelGPT is a resilient security visualization system designed to ingest network traffic metadata, identify anomalous threat patterns using adaptive heuristics, and automate perimeter response via an integrated firewall blacklist.
-
----
-
-## 🎬 Live Dashboard Recording
-
-> Real-time demo of SentinelGPT in action — threat detection, live telemetry stream, security quarantine, and autonomous heuristics running live.
-
-![SentinelGPT Live Dashboard Demo](assets/demo.gif)
-
-**Dashboard features shown:**
-- 🔴 **Real-time Threat Feed** — Live `NEXUS_WEBSOCKET` streaming with auto-updating threat telemetry
-- 📊 **Threat Flow Velocity Chart** and **Sector Risk Map** tabs
-- 🛡️ **Security Quarantine** — IP blocking with `Revoke` controls
-- ⚡ **Inject Threat** — Manual threat injection for testing
-- 🔄 **Sync** — Instant data refresh
-- 📈 **Live Metrics** — PERIMETER_INCIDENTS, LEVEL_CRITICAL, TOTAL_TRAFFIC_LOGS counters updating in real time
-
----
-
-## 🏗️ Technical Architecture & Vercel Readiness
-
-### 1. Vercel Serverless API Core (`api/index.py`)
-- **Stateless & Scalable Execution:** Native FastAPI ASGI backend running as Vercel Serverless Functions.
-- **Auto-Initializing Storage:** Built-in SQLite database auto-seeded with dynamic threat telemetry upon cold start.
-- **Normalized REST API:**
-  - `POST /api/login` - Identity authentication & JWT token generation.
-  - `GET /api/snapshot` - Live SOC metrics, threat logs, risk distribution map, and quarantine list.
-  - `POST /api/block_ip` - Quarantine high-risk IP addresses.
-  - `POST /api/unblock_ip` - Revoke quarantine for IP addresses.
-  - `POST /api/sim_threat` - Inject synthetic threat vector for testing.
-  - `POST /api/clear_logs` - Clear threat matrix logs.
-  - `GET /api/export` - Export security incident history.
-
-### 2. Resilient Frontend (`frontend/`)
-- **Dual Real-Time Engine:** Connects via WebSockets (`/ws`) when available (local server) and gracefully falls back to low-latency serverless polling (3s) on Vercel.
-- **Dynamic Visualization:** Live threat flow velocity charts and sector risk maps rendered with Recharts.
-- **Interactive Controls:** Instant manual IP blocking/unblocking, test threat injection, and session eject controls.
-
----
-
-## 🚀 Deployment & Installation
-
-### Option A: Deploying directly to Vercel
-
-1. **Push to GitHub**:
-   Push this project to your GitHub repository (`SentinelGPT`).
-
-2. **Deploy on Vercel**:
-   - Import the project repository into your [Vercel Dashboard](https://vercel.com).
-   - Vercel automatically detects `vercel.json`, `package.json`, and `api/index.py`.
-   - Click **Deploy**.
-
-All routes (`/api/*`, `/login`, `/snapshot`) and static dashboard assets are automatically configured!
-
----
-
-### Option B: Running Locally
-
-```bash
-# 1. Install root dependencies & build frontend
-npm install
-npm run build
-
-# 2. Start Python Backend (Terminal 1)
-python backend/main.py
-
-# 3. Start Frontend Dev Server (Terminal 2)
-npm run dev
-```
-
-### Accessing the Dashboard
-- **Default Credentials:** Username `admin` | Password `admin123`
-- Or click **Quick Demo Access (Bypass)** on the login screen.
-
----
-
-## 📊 Core Functionality
-- **Autonomous Monitoring:** Real-time threat detection and logging without manual intervention.
-- **Interactive Perimeter Firewall:** Block and unblock IP addresses with live UI state synchronization.
-- **Telemetry Visuals:** Real-time metrics for total incidents, level critical interceptions, and total traffic volume.
-=======
-# 🛡️ SentinelGPT — Autonomous Cyber Defense Dashboard
-
 <div align="center">
 
-![SentinelGPT](https://img.icons8.com/color/96/shield.png)
+<img src="https://img.icons8.com/color/96/shield.png" alt="SentinelGPT Shield" />
 
-**Real-time AI-powered cybersecurity monitoring, threat detection, and autonomous defense platform**
+# 🛡️ SentinelGPT — Autonomous Cyber Defense Platform
 
-[![Vercel Deploy](https://img.shields.io/badge/Deployed%20on-Vercel-black?logo=vercel)](https://sentinelgpt-ai.vercel.app)
-[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/Pravallika2025/CyberSecurity-SentinelGPT)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi)](https://fastapi.tiangolo.com)
-[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python)](https://python.org)
+**Real-time AI-powered cybersecurity monitoring, threat detection, and autonomous defense dashboard**
+
+[![Live on Vercel](https://img.shields.io/badge/🚀_Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel)](https://sentinelgpt-ai.vercel.app)
+[![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![SQLite](https://img.shields.io/badge/SQLite-3.x-003B57?style=for-the-badge&logo=sqlite)](https://sqlite.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](LICENSE)
 
 </div>
 
 ---
 
-## 📖 Project Overview
+## 📖 Project Description
 
-**SentinelGPT** is a full-stack autonomous cybersecurity operations center (SOC) dashboard built for real-time threat detection, incident management, and AI-assisted remediation. It combines a React frontend with a FastAPI Python backend deployed serverlessly on Vercel.
+**SentinelGPT** is a full-stack autonomous cybersecurity operations center (SOC) dashboard built for real-time threat detection, incident management, and AI-assisted remediation. It combines a **React 19** frontend with a **FastAPI Python** backend deployed serverlessly on **Vercel**.
 
-The platform monitors network threats in real-time, maps them to MITRE ATT&CK techniques, provides AI-generated remediation recommendations, and automatically quarantines malicious IPs — all from a sleek, dark-mode operations dashboard.
+The platform monitors network threats in real-time, maps them to **MITRE ATT&CK** techniques, provides **AI-generated remediation recommendations**, and automatically quarantines malicious IPs — all from a sleek, dark-mode glassmorphism operations dashboard.
+
+> **Built as an MCA Final Year Project** demonstrating expertise in full-stack development, cybersecurity principles, real-time systems, and cloud deployment.
 
 ---
 
 ## ✨ Features
 
-### 🔐 Authentication
-- JWT-based login system
-- Operator account registration
-- Secure session management via localStorage
-- Quick demo bypass for testing
-
-### 📊 Dashboard
-- **7 Real-time Metric Cards**: Total Threats, Critical, High, Medium, Low, Avg Risk Score, Blocked IPs
-- **Risk Gauge Chart**: Visual average risk score display dial (0–100)
-- **Severity Donut Chart**: Critical / High / Medium / Low severity distribution
-- **Threat Type Breakdown Chart**: Bar chart of attack categories
-- **Risk Score Timeline**: Real-time time-series risk graph
-- **Perimeter Heatmap Matrix**: Node grid of threat perimeters
-- **Attack Chrono Timeline**: Vertical sequence list of threat events
-- **Live Alerts Feed**: Auto-updating threat stream with Ack & Quarantine
-- **AI Remediation**: Dynamically displays containment protocols for active threats
-- **Quick Action Core**: Inject Test Threat, Purge Threat Logs, and Download Reports
-
-### 🔍 Threat History
-- **Full Threat Table**: All logged incidents with timestamps
-- **Live Search**: Filter by IP, threat type, description, event ID
-- **Advanced Filters**: Severity (Critical/High/Medium/Low) + Threat Type
-- **Active Quarantines**: View and manage blocked IPs
-- **Download Report**: Export full JSON threat report
-
-### 🎯 IP Threat Analyzer
-- Full AI-powered threat intelligence lookup per IP
-- MITRE ATT&CK technique mapping (e.g., T1110, T1498, T1190)
-- Geo-location, ISP, and open port detection
-- AI remediation recommendation with severity classification
-- One-click quarantine button for malicious IPs
-
-### 🤖 AI Security Assistant
-- Conversational AI interface for threat triage
-- Context-aware responses about your live threat data
-- MITRE ATT&CK tactic recommendations
-- DDoS mitigation guidance
-- Brute-force and credential attack playbooks
-- Quick-prompt shortcuts
-
-### 📁 File Scanner
-- Upload files for static AI heuristic analysis
-- Verdict: MALICIOUS / SUSPICIOUS / CLEAN
-- Detailed indicator of compromise (IoC) list with offsets
-- Supports .pcap, .log, .exe, .dll, .pdf, .docx
-
-### 🚨 Attack Detection & Alarm
-- Real-time attack defection banner with red pulsing alert
-- Web Audio API emergency alarm sound (toggleable)
-- Automatic IP quarantine on detected attacks
-- MITRE ATT&CK mapping displayed in real-time
-- AI remediation shown immediately on detection
-
-### 💾 Data Persistence
-- All threat data saved to localStorage — never lost on refresh
-- Optimistic UI updates with backend sync
-- Fallback data if API is unreachable
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | 🔴 **Real-time Threat Detection** | Live threat feed with autonomous heuristic analysis |
+| 2 | 🤖 **Autonomous Monitoring** | Background workers detect and log events 24/7 without intervention |
+| 3 | 💉 **Threat Injection** | Manual test threat injection for security validation |
+| 4 | 📊 **Risk Analysis** | Severity scoring (Critical/High/Medium/Low) with visual indicators |
+| 5 | 📈 **Telemetry Dashboard** | 7 real-time KPI metric cards with live counters |
+| 6 | 📉 **Interactive Charts** | Risk Gauge, Severity Donut, Threat Breakdown Bar, Risk Timeline |
+| 7 | 🔌 **WebSocket Support** | Real-time bidirectional data streaming (local dev) |
+| 8 | 🌐 **REST API** | Full CRUD API with Swagger documentation |
+| 9 | 🔐 **JWT Authentication** | Secure HS256 token-based auth with 8-hour expiry |
+| 10 | 💾 **SQLite Storage** | Persistent database with auto-seeding on cold start |
+| 11 | 🧱 **Firewall Simulation** | Interactive IP blocking/unblocking with quarantine list |
+| 12 | 🔒 **Threat Quarantine** | Automatic and manual IP isolation with revoke controls |
+| 13 | 🗺️ **Sector Risk Map** | Perimeter heatmap matrix of network node threat zones |
+| 14 | ⚡ **Threat Velocity** | Real-time threat flow velocity charts |
+| 15 | 📜 **Incident History** | Full searchable threat log with advanced filters |
+| 16 | 📥 **Export Logs** | Download complete incident reports as JSON |
+| 17 | 📱 **Responsive UI** | Mobile-first glassmorphism design with smooth transitions |
+| 18 | 🌙 **Dark Theme** | Cyberpunk-inspired dark mode with neon accents |
 
 ---
 
-## 🛠️ Technologies Used
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VERCEL EDGE NETWORK                       │
+│                                                             │
+│  ┌──────────────────────────┐  ┌──────────────────────────┐ │
+│  │    React SPA Frontend    │  │   FastAPI Python Backend  │ │
+│  │   (Static Build /dist)   │  │   (Serverless Function)   │ │
+│  │                          │  │                           │ │
+│  │  • Dashboard (SOC)       │  │  • POST /api/login        │ │
+│  │  • Login / Register      │  │  • GET  /api/snapshot     │ │
+│  │  • Threat History        │  │  • POST /api/block_ip     │ │
+│  │  • IP Threat Analyzer    │  │  • POST /api/unblock_ip   │ │
+│  │  • AI Security Assistant │  │  • POST /api/sim_threat   │ │
+│  │  • File Scanner          │  │  • POST /api/clear_logs   │ │
+│  │  • Attack Timeline       │  │  • GET  /api/export       │ │
+│  └────────────┬─────────────┘  └────────────┬──────────────┘ │
+│               │                              │                │
+│               └──────────┬───────────────────┘                │
+│                          │                                    │
+│                  ┌───────▼────────┐                           │
+│                  │   SQLite DB    │                           │
+│                  │  (/tmp/senti-  │                           │
+│                  │   nel.db)      │                           │
+│                  └────────────────┘                           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Technology Stack
 
 ### Frontend
 | Technology | Version | Purpose |
 |---|---|---|
 | React | 19.0 | UI Framework |
-| Vite | 5.4 | Build Tool |
-| Recharts | 2.13 | Data Visualization |
+| Vite | 5.4 | Build Tool & Dev Server |
+| Recharts | 2.13 | Data Visualization (Charts) |
 | Lucide React | 0.454 | Icon System |
-| Tailwind CSS | via CDN classes | Utility Styling |
-| Web Audio API | Native | Alarm Sound |
+| Web Audio API | Native | Alert Alarm Sound |
 
 ### Backend
 | Technology | Version | Purpose |
 |---|---|---|
 | FastAPI | 0.100+ | REST API Framework |
-| SQLAlchemy | 2.0+ | ORM / Database |
-| SQLite | 3.x | Database (Vercel /tmp) |
-| PyJWT | 2.8+ | JWT Authentication |
-| Pydantic | 2.0+ | Data Validation |
-| Uvicorn | 0.22+ | ASGI Server |
+| SQLAlchemy | 2.0+ | ORM / Database Layer |
+| SQLite | 3.x | Relational Database |
+| PyJWT | 2.8+ | JWT Token Authentication |
+| Pydantic | 2.0+ | Request/Response Validation |
+| Uvicorn | 0.22+ | ASGI Server (Local Dev) |
 
 ### Infrastructure
 | Technology | Purpose |
 |---|---|
-| Vercel | Serverless Deployment |
+| Vercel | Serverless Production Deployment |
 | GitHub Actions | CI/CD Pipeline |
 | Vercel Python Runtime | FastAPI Serverless Functions |
 | Vercel Static Build | React SPA Hosting |
 
 ---
 
-## 🏗️ System Architecture
+## 🔄 Project Workflow
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    VERCEL EDGE NETWORK                   │
-│                                                         │
-│  ┌──────────────────────┐  ┌──────────────────────────┐ │
-│  │   React SPA Frontend │  │  FastAPI Python Backend  │ │
-│  │  (Static Build /dist)│  │  (Serverless Function)   │ │
-│  │                      │  │                          │ │
-│  │  • Dashboard         │  │  • /api/login            │ │
-│  │  • Login/Register    │  │  • /api/snapshot         │ │
-│  │  • Threat History    │  │  • /api/block_ip         │ │
-│  │  • IP Analyzer       │  │  • /api/unblock_ip       │ │
-│  │  • AI Assistant      │  │  • /api/sim_threat       │ │
-│  │  • File Scanner      │  │  • /api/clear_logs       │ │
-│  └──────────┬───────────┘  └──────────┬───────────────┘ │
-│             │                         │                  │
-│             └─────────┬───────────────┘                  │
-│                       │                                  │
-│               ┌───────▼────────┐                         │
-│               │  SQLite DB     │                         │
-│               │  (/tmp/senti-  │                         │
-│               │   nel.db)      │                         │
-│               └────────────────┘                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Data Flow
-```
-Browser → Vercel Edge → Route Match:
-  /api/*  → FastAPI Serverless (Python)
-  /*      → React SPA (index.html)
-           → JS/CSS served from /assets/
+                    ┌──────────────┐
+                    │     User     │
+                    │  (Browser)   │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │   Frontend   │
+                    │  React SPA   │
+                    │  (Vite 5.4)  │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │   FastAPI    │
+                    │  REST API +  │
+                    │  WebSocket   │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │   Threat     │
+                    │   Engine     │
+                    │  (Heuristic  │
+                    │  Analysis)   │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │   SQLite     │
+                    │  Database    │
+                    │  (Incidents, │
+                    │  Quarantine) │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │  Response    │
+                    │   Engine     │
+                    │ (Auto-Block, │
+                    │  Alerts)     │
+                    └──────┬───────┘
+                           │
+                    ┌──────▼───────┐
+                    │  Dashboard   │
+                    │  (Real-time  │
+                    │   Updates)   │
+                    └──────────────┘
 ```
 
 ---
 
-## 🚀 Installation & Local Development
+## 📊 Dashboard Preview
+
+![SentinelGPT SOC Dashboard](docs/images/dashboard.png)
+
+---
+
+## 🚀 Live Deployment
+
+### ✅ Live Production Deployment
+
+| Component | URL |
+|---|---|
+| 🌐 **Live Platform** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) |
+| 📡 **API Endpoint** | [https://sentinelgpt-ai.vercel.app/api/health](https://sentinelgpt-ai.vercel.app/api/health) |
+| 📖 **API Docs (Swagger)** | [https://sentinelgpt-ai.vercel.app/api/docs](https://sentinelgpt-ai.vercel.app/api/docs) |
+
+### ✅ Local Development Deployment
+
+| Component | URL | Description |
+|---|---|---|
+| 🖥️ **Frontend** | [http://localhost:5173](http://localhost:5173) | React dev server (Vite) |
+| ⚙️ **Backend API** | [http://localhost:8000](http://localhost:8000) | FastAPI (Uvicorn) |
+| 🔌 **WebSocket** | `ws://localhost:8000/ws` | Real-time event stream |
+| 💾 **Database** | `./sentinel_production.db` | SQLite (auto-created) |
+
+> **Note:** Localhost URLs only work after running the project locally. The Vercel deployment is accessible to everyone.
+
+---
+
+## 🎯 Deployment Walkthrough
+
+The platform consists of interconnected components working together:
+
+| Component | Technology | Role |
+|---|---|---|
+| **Frontend** | React 19 + Vite 5.4 | Renders the SOC dashboard UI, handles user interactions, manages local state |
+| **Backend** | FastAPI + SQLAlchemy | Processes API requests, manages database, handles authentication |
+| **API Layer** | REST + WebSocket | Provides `/api/*` endpoints for data CRUD and `/ws` for real-time streaming |
+| **Database** | SQLite | Stores incidents, quarantined IPs, user accounts |
+| **Auth System** | JWT (PyJWT) | Issues and validates HS256 tokens with 8-hour expiry |
+| **Threat Engine** | Python Heuristics | Analyzes traffic patterns, detects anomalies, auto-quarantines |
+
+### Vercel Deployment Architecture
+- **Static Build**: The React frontend is built via `npm run build` → served as static files from `/dist`
+- **Serverless Functions**: `api/index.py` runs as a Vercel Python serverless function
+- **Routing**: `vercel.json` routes `/api/*` to the Python function, all other routes to the React SPA
+- **Database**: Uses `/tmp/sentinel_vercel.db` on Vercel (ephemeral, auto-seeded on cold start)
+
+---
+
+## 🎬 Live Working Demo
+
+> Real-time demo of SentinelGPT in action — threat detection, live telemetry stream, security quarantine, and autonomous heuristics running live.
+
+![SentinelGPT Live Dashboard Demo](assets/demo.gif)
+
+**Dashboard features shown:**
+- 🔴 **Real-time Threat Feed** — Live streaming with auto-updating threat telemetry
+- 📊 **Threat Flow Velocity Chart** and **Sector Risk Map** tabs
+- 🛡️ **Security Quarantine** — IP blocking with `Revoke` controls
+- ⚡ **Inject Threat** — Manual threat injection for testing
+- 🔄 **Sync** — Instant data refresh
+- 📈 **Live Metrics** — Incidents, Critical alerts, and Traffic counters updating in real time
+
+---
+
+## 📸 Additional Dashboard Screenshots
+
+### 🔐 Cyberpunk Login Interface
+![SentinelGPT Login Interface](docs/images/login_page.png)
+
+### 📝 Operator Registration Portal
+![SentinelGPT Registration Interface](docs/images/registration_page.png)
+
+### 🤖 AI Security Conversational Assistant
+![SentinelGPT AI Chat Interface](docs/images/ai_chat.png)
+
+### 📁 Heuristic Payload File Scanner
+![SentinelGPT File Scanner Interface](docs/images/file_scanner.png)
+
+### 📺 Deployed Operations Walkthrough
+![SentinelGPT Operations Walkthrough](docs/images/walkthrough_demo.webp)
+
+---
+
+## 💻 Installation
 
 ### Prerequisites
-- Node.js 18+
-- Python 3.11+
-- npm or yarn
+- **Node.js** 18+ ([Download](https://nodejs.org))
+- **Python** 3.11+ ([Download](https://python.org))
+- **npm** (bundled with Node.js)
+- **pip** (bundled with Python)
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/Pravallika2025/CyberSecurity-SentinelGPT.git
-cd CyberSecurity-SentinelGPT
+git clone https://github.com/Pravallika2025/sentigraud-ai-.git
+cd sentigraud-ai-
 ```
 
 ### 2. Frontend Setup
@@ -261,17 +268,15 @@ cd CyberSecurity-SentinelGPT
 cd frontend
 npm install
 npm run dev
-# Opens at http://localhost:5173
+# ✅ Opens at http://localhost:5173
 ```
 
 ### 3. Backend Setup
 ```bash
-# From project root
+# From project root (in a separate terminal)
 pip install -r requirements.txt
-
-# Run FastAPI locally
-uvicorn api.index:app --reload --port 8000
-# API available at http://localhost:8000
+python backend/main.py
+# ✅ API available at http://localhost:8000
 ```
 
 ### 4. Environment Variables (Optional)
@@ -281,26 +286,47 @@ SECRET_KEY=your_jwt_secret_key_here
 ADMIN_PASSWORD=your_admin_password
 ```
 
-### 5. Login Credentials
-- **Default Login**: `admin` / `admin123`
-- **Register**: Create your own operator account via the Register tab
-- **Quick Demo**: Click "Quick Demo Access (Bypass)" to skip login
+---
+
+## 🏠 Localhost Deployment
+
+After running both frontend and backend:
+
+| Service | Command | URL |
+|---|---|---|
+| **Frontend** | `cd frontend && npm run dev` | [http://localhost:5173](http://localhost:5173) |
+| **Backend** | `python backend/main.py` | [http://localhost:8000](http://localhost:8000) |
+
+The Vite dev server automatically proxies `/api/*` requests to the backend, so both services communicate seamlessly.
+
+### Login Credentials
+
+| Method | Username | Password | Role |
+|---|---|---|---|
+| **Admin Login** | `admin` | `admin123` | Administrator |
+| **Admin Email** | `admin@sentinel.ai` | `Admin@123` | Administrator |
+| **Analyst Email** | `analyst@sentinel.ai` | `Analyst@123` | Security Analyst |
+| **Demo Email** | `demo@sentinel.ai` | `Demo@123` | Demo Observer |
+| **Quick Demo** | Click "Quick Demo Access (Bypass)" | — | Bypass Auth |
 
 ---
 
 ## 📡 API Endpoints
 
-| Method | Endpoint | Description | Auth |
+| Method | Endpoint | Description | Auth Required |
 |---|---|---|---|
-| POST | `/api/login` | Operator authentication, returns JWT | ❌ |
-| GET | `/api/snapshot` | Full SOC data snapshot (logs + blocked IPs + metrics) | ✅ |
-| POST | `/api/block_ip` | Add IP to quarantine list | ✅ |
-| POST | `/api/unblock_ip` | Remove IP from quarantine | ✅ |
-| POST | `/api/sim_threat` | Inject simulated threat event | ✅ |
-| POST | `/api/clear_logs` | Clear all threat logs | ✅ |
-| GET | `/api/docs` | FastAPI Swagger documentation | ❌ |
+| `POST` | `/api/login` | Authenticate operator, returns JWT token | ❌ |
+| `POST` | `/api/register` | Register new operator account | ❌ |
+| `GET` | `/api/snapshot` | Full SOC data snapshot (logs + blocked IPs + metrics) | ✅ |
+| `POST` | `/api/block_ip` | Add IP address to quarantine list | ✅ |
+| `POST` | `/api/unblock_ip` | Remove IP from quarantine | ✅ |
+| `POST` | `/api/sim_threat` | Inject simulated threat event | ✅ |
+| `POST` | `/api/clear_logs` | Clear all threat logs | ✅ |
+| `GET` | `/api/export` | Export full incident history as JSON | ✅ |
+| `GET` | `/api/health` | Health check endpoint | ❌ |
+| `GET` | `/api/docs` | FastAPI Swagger UI documentation | ❌ |
 
-### Example API Call
+### Example API Calls
 ```bash
 # Login
 curl -X POST https://sentinelgpt-ai.vercel.app/api/login \
@@ -310,6 +336,12 @@ curl -X POST https://sentinelgpt-ai.vercel.app/api/login \
 # Get snapshot (with token)
 curl https://sentinelgpt-ai.vercel.app/api/snapshot \
   -H "Authorization: Bearer YOUR_TOKEN"
+
+# Inject test threat
+curl -X POST https://sentinelgpt-ai.vercel.app/api/sim_threat \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{"ip": "192.168.1.100", "type": "Port Scan", "score": 78}'
 ```
 
 ---
@@ -317,60 +349,81 @@ curl https://sentinelgpt-ai.vercel.app/api/snapshot \
 ## 📁 Folder Structure
 
 ```
-CyberSecurity-SentinelGPT/
+sentigraud-ai-/
 │
-├── 📁 frontend/                 # React SPA
+├── 📁 frontend/                   # React SPA (Vite)
 │   ├── 📁 src/
 │   │   ├── 📁 components/
-│   │   │   ├── Dashboard.jsx       # Main SOC dashboard
-│   │   │   ├── Login.jsx           # Auth (login + register)
-│   │   │   ├── BlockedIPs.jsx      # Quarantine list
-│   │   │   ├── ThreatTable.jsx     # Historical threat table
-│   │   │   ├── LiveAlertsFeed.jsx  # Real-time alerts
-│   │   │   ├── RiskGaugeChart.jsx  # Gauge chart
-│   │   │   ├── SeverityDonutChart.jsx  # Donut chart
-│   │   │   ├── ThreatBreakdownChart.jsx # Bar chart
-│   │   │   ├── RiskTimelineChart.jsx   # Timeline chart
-│   │   │   ├── MetricsCard.jsx     # Metric card
-│   │   │   └── ErrorBoundary.jsx   # Error handling
-│   │   ├── App.jsx                 # Root component + routing
-│   │   ├── main.jsx                # React entry point
-│   │   └── index.css               # Global styles
-│   ├── index.html                  # HTML template
-│   ├── vite.config.js              # Vite configuration
-│   ├── package.json                # Dependencies
-│   └── eslint.config.js            # Linting rules
+│   │   │   ├── Dashboard.jsx        # Main SOC operations dashboard
+│   │   │   ├── Login.jsx            # Authentication (login + register)
+│   │   │   ├── BlockedIPs.jsx       # Quarantine management list
+│   │   │   ├── ThreatTable.jsx      # Historical threat incident table
+│   │   │   ├── LiveAlertsFeed.jsx   # Real-time alert stream
+│   │   │   ├── RiskGaugeChart.jsx   # Semi-circle risk gauge
+│   │   │   ├── SeverityDonutChart.jsx  # Severity distribution donut
+│   │   │   ├── ThreatBreakdownChart.jsx # Attack type bar chart
+│   │   │   ├── RiskTimelineChart.jsx    # Risk score time-series
+│   │   │   ├── ThreatHeatmap.jsx    # Perimeter heatmap matrix
+│   │   │   ├── AttackTimeline.jsx   # Vertical attack chronology
+│   │   │   ├── MetricsCard.jsx      # KPI metric card component
+│   │   │   ├── RiskDistributionChart.jsx # Risk distribution chart
+│   │   │   ├── ThreatChart.jsx      # Threat flow velocity chart
+│   │   │   └── ErrorBoundary.jsx    # React error boundary
+│   │   ├── App.jsx                  # Root component + routing
+│   │   ├── main.jsx                 # React bootstrap entry point
+│   │   ├── App.css                  # Component-specific styles
+│   │   └── index.css                # Global design system
+│   ├── index.html                   # HTML template
+│   ├── vite.config.js               # Vite build + proxy config
+│   └── package.json                 # Frontend dependencies
 │
 ├── 📁 api/
-│   └── index.py                    # FastAPI serverless backend
+│   └── index.py                     # FastAPI serverless backend (Vercel)
 │
 ├── 📁 backend/
-│   └── main.py                     # Extended backend (local dev)
+│   └── main.py                      # Extended backend (local dev + WebSocket)
+│
+├── 📁 assets/
+│   ├── demo.gif                     # Live dashboard demo recording
+│   └── dashboard_preview.jpg        # Dashboard preview image
+│
+├── 📁 docs/
+│   ├── 📁 images/                   # Documentation screenshots
+│   │   ├── dashboard.png            # SOC dashboard screenshot
+│   │   ├── login_page.png           # Login interface screenshot
+│   │   ├── registration_page.png    # Registration screenshot
+│   │   ├── ai_chat.png              # AI assistant screenshot
+│   │   ├── file_scanner.png         # File scanner screenshot
+│   │   └── walkthrough_demo.webp    # Operations walkthrough animation
+│   └── walkthrough_demo.md          # Detailed walkthrough document
 │
 ├── 📁 .github/
-│   └── workflows/deploy.yml        # GitHub Actions CI/CD
+│   └── workflows/deploy.yml         # GitHub Actions CI/CD
 │
-├── vercel.json                     # Vercel deployment config
-├── requirements.txt                # Python dependencies
-└── README.md                       # This file
+├── vercel.json                      # Vercel deployment configuration
+├── requirements.txt                 # Python dependencies
+├── package.json                     # Root monorepo scripts
+└── README.md                        # This documentation
 ```
 
 ---
 
 ## 🔒 Security Features
 
-- **JWT Authentication**: 8-hour expiring tokens with HS256 signing
-- **CORS Protection**: Configured FastAPI CORS middleware
-- **Secrets via Env Vars**: `SECRET_KEY` and `ADMIN_PASSWORD` from environment
-- **Input Validation**: Pydantic models validate all API inputs
-- **Optimistic UI**: Frontend never blocks on failed API calls
-- **Session Management**: Tokens stored and validated per request
+| Feature | Implementation |
+|---|---|
+| **JWT Authentication** | 8-hour expiring HS256 tokens |
+| **CORS Protection** | Configured FastAPI CORS middleware |
+| **Password Hashing** | SHA-256 one-way hash for stored credentials |
+| **Input Validation** | Pydantic models validate all API inputs |
+| **Session Management** | Tokens stored and validated per request |
+| **Graceful Degradation** | Frontend operates with fallback data if API unreachable |
 
 ---
 
 ## 🗺️ MITRE ATT&CK Coverage
 
-| Threat Type | Technique | Tactic |
+| Threat Type | Technique ID | Tactic |
 |---|---|---|
 | Credential Stuffing | T1078 | Initial Access |
 | DDoS Attempt | T1498 | Impact |
@@ -383,76 +436,40 @@ CyberSecurity-SentinelGPT/
 
 ---
 
-## 🔮 Future Improvements
+## 🔮 Future Enhancements
 
-- [ ] **Real ML Model**: Integrate scikit-learn threat severity classifier
-- [ ] **CVE Lookup**: Link threats to known CVEs via NVD API
-- [ ] **Webhook Alerts**: Email/Slack/Discord notifications on critical threats
-- [ ] **Role-Based Access**: Admin / Analyst / Read-Only roles
-- [ ] **Multi-Tenant**: Separate dashboards per organization
-- [ ] **Packet Capture**: Real .pcap file parsing with Scapy
-- [ ] **Geo Map**: World map visualization of attack origins
-- [ ] **Attack Graph**: Kill-chain relationship visualization
-- [ ] **SIEM Integration**: Forward events to Splunk / Elastic
-- [ ] **Rate Limiting**: API request throttling per operator
-- [ ] **Audit Logs**: Full action history per operator session
-- [ ] **Dark/Light Mode**: User-controlled theme switching
-- [ ] **Export PDF**: Formal incident report PDF generation
-
----
-
-## 📸 Screenshots & Operations Walkthrough
-
-### 📊 Global SOC Dashboard
-![SOC Dashboard Preview](docs/images/dashboard.png)
-
-### 🔐 Cyberpunk Login Interface
-![Login Interface Preview](docs/images/login_page.png)
-
-### 📝 Operator Registration Interface
-![Registration Interface Preview](docs/images/registration_page.png)
-
-### 🤖 AI Security Conversational Assistant
-![AI Chat Interface Preview](docs/images/ai_chat.png)
-
-### 📁 Heuristic Payload File Scanner
-![File Scanner Interface Preview](docs/images/file_scanner.png)
-
----
-
-## 🎯 Live Deployment & Walkthrough
-
-**Live Deployed Platform**: [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app)
-
-**🎥 Operations Walkthrough Video**: [Watch Deployed Walkthrough Video](https://github.com/Pravallika2025/sentigraud-ai-/blob/main/docs/walkthrough_demo.md)
-
-### 🔑 Test Operator Credentials
-We have seeded three default roles to support instant assessment:
-1. **Security Administrator**
-   - Email: `admin@sentinel.ai`
-   - Password: `Admin@123`
-   - Role: `Administrator`
-2. **Security Analyst**
-   - Email: `analyst@sentinel.ai`
-   - Password: `Analyst@123`
-   - Role: `Security Analyst`
-3. **Demo User**
-   - Email: `demo@sentinel.ai`
-   - Password: `Demo@123`
-   - Role: `Demo Observer`
-
-Or use the **Quick Demo Access (Bypass)** link on the login screen.
-
----
-
-## 👩‍💻 Author
-
-**Pravallika**  
-GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
+- [ ] **Real ML Model** — Integrate scikit-learn threat severity classifier
+- [ ] **CVE Lookup** — Link threats to known CVEs via NVD API
+- [ ] **Webhook Alerts** — Email/Slack/Discord notifications on critical threats
+- [ ] **Role-Based Access Control** — Admin / Analyst / Read-Only operator roles
+- [ ] **Multi-Tenant Support** — Separate dashboards per organization
+- [ ] **Real Packet Capture** — .pcap file parsing with Scapy
+- [ ] **Geo Map Visualization** — World map of attack origins
+- [ ] **Attack Graph** — Kill-chain relationship visualization
+- [ ] **SIEM Integration** — Forward events to Splunk / Elastic
+- [ ] **Rate Limiting** — API request throttling per operator
+- [ ] **Audit Logs** — Full action history per operator session
+- [ ] **Export PDF** — Formal incident report PDF generation
 
 ---
 
 ## 📄 License
 
 MIT License — Free to use for educational and portfolio purposes.
->>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
+
+---
+
+## 👩‍💻 Author
+
+**Pravallika**
+GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
+
+---
+
+<div align="center">
+
+**⚔️ SentinelGPT — Autonomous Cyber Defense Platform ⚔️**
+
+*Built with ❤️ for cybersecurity*
+
+</div>
