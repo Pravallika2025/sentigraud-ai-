@@ -173,26 +173,16 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 
 ## 🚀 Project Access & Live Links
 
-### 🌐 Live Production Access (Clickable Live Links)
+### 🌐 Live Production Access — Always Working (Click Any Link)
 
 | Component | Working Live URL | Description | Status |
 |---|---|---|---|
-| 🌐 **Live SOC Platform** | [Click to Open Platform](https://sentinelgpt-ai.vercel.app) | React SOC Operations Dashboard | 🟢 Active |
-| 📡 **Live API Endpoint (Health)** | [Click to Open Health Status](https://sentinelgpt-ai.vercel.app/health) | FastAPI Core Health Dashboard (HTML + JSON) | 🟢 Active |
-| 📖 **Live API Docs (Swagger)** | [Click to Open Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
-| 📋 **Live API Specs (OpenAPI)** | [Click to Open OpenAPI Schema](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 JSON Schema | 🟢 Active |
+| 🌐 **Live SOC Platform** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | React SOC Operations Dashboard | 🟢 Active |
+| 📡 **Live API Health** | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) | FastAPI Core Health Status Page | 🟢 Active |
+| 📖 **Live API Docs** | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
+| 📋 **Live OpenAPI Schema** | [https://sentinelgpt-ai.vercel.app/openapi.json](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 JSON Schema | 🟢 Active |
 
-### 🏠 Local Development Access (Clickable Localhost Links)
-
-| Component | Working Clickable Local Link | Live Cloud Link | Command to Run |
-|---|---|---|---|
-| 🖥️ **Frontend Dashboard** | [http://localhost:5173](http://localhost:5173) | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
-| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) | `python backend/main.py` |
-| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | [Open Live API Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
-| 🔌 **WebSocket Stream** | `ws://localhost:8000/ws` | — | `python backend/main.py` |
-| 💾 **SQLite Database** | `./sentinel_production.db` | — | Auto-created on start |
-
-> **Note:** The `localhost` URLs are active clickable links that open directly when running the application on your local machine.
+> ✅ **All links above work 24/7 without any setup — click to open instantly.**
 
 ---
 
@@ -289,18 +279,18 @@ ADMIN_PASSWORD=your_admin_password
 ---
 
 ## 🏠 Localhost Deployment
- 
-After running both frontend and backend:
- 
-| Service | Command | Working Localhost Link | Live Cloud URL |
-|---|---|---|---|
-| **Frontend Dashboard** | `cd frontend && npm run dev` | [http://localhost:5173](http://localhost:5173) | [Open Live Platform](https://sentinelgpt-ai.vercel.app) |
-| **Backend API** | `python backend/main.py` | [http://localhost:8000](http://localhost:8000) | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) |
-| **API Docs** | `python backend/main.py` | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) |
 
-👉 **Click here to open Local Dashboard**: [http://localhost:5173](http://localhost:5173)
+After running both frontend and backend:
+
+| Service | Command | Local URL (after running) | Live Cloud (always works) |
+|---|---|---|---|
+| **Frontend Dashboard** | `cd frontend && npm run dev` | http://localhost:5173 | [Open Live Platform](https://sentinelgpt-ai.vercel.app) |
+| **Backend API** | `python backend/main.py` | http://localhost:8000 | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) |
+| **API Docs** | `python backend/main.py` | http://localhost:8000/api/docs | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) |
 
 The Vite dev server automatically proxies `/api/*` requests to the backend, so both services communicate seamlessly.
+
+> ⚠️ **Note:** `localhost` links only open on **your own machine** after running the commands above. Use the **Live Cloud** links to access the platform from anywhere without any setup.
 
 ### Login Credentials
 
@@ -479,36 +469,41 @@ GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
 
 ---
 
-## 🚀 Quick Access — Open the Dashboard
+## 🚀 Quick Access — 3 Always-Working Links (Click to Open)
 
-> Click the links below anytime to instantly open the **SentinelGPT SOC Dashboard**:
+> All 3 links below are **live and working 24/7** — click to open instantly from anywhere, no setup needed:
 
-### 🌐 Live Cloud Deployment (Always Online)
+<div align="center">
 
-- 🌐 **Live SOC Platform**: [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app)
-- 📡 **Live API Health**: [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health)
-- 📖 **Live API Docs**: [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs)
+| # | Page | Working Link | Status |
+|---|---|---|---|
+| ✅ **1** | 🖥️ SOC Dashboard | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | 🟢 Live |
+| ✅ **2** | 📡 API Health Status | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) | 🟢 Live |
+| ✅ **3** | 📖 API Docs / Swagger | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | 🟢 Live |
+
+## 👉 [OPEN SOC DASHBOARD](https://sentinelgpt-ai.vercel.app) 👈
+
+## 👉 [OPEN API HEALTH](https://sentinelgpt-ai.vercel.app/health) 👈
+
+## 👉 [OPEN API DOCS](https://sentinelgpt-ai.vercel.app/docs) 👈
+
+</div>
 
 ---
 
-### 🏠 Localhost Deployment (Run Locally First)
+### 🏠 Run Locally on Your Machine
 
 ```bash
-# Step 1 — Start Backend API (Terminal 1)
+# Terminal 1 — Start Backend
+pip install -r requirements.txt
 python backend/main.py
 # Backend available at: http://localhost:8000
 
-# Step 2 — Start Frontend Dashboard (Terminal 2)
-cd frontend && npm run dev
-# Frontend available at: http://localhost:5173
+# Terminal 2 — Start Frontend Dashboard
+cd frontend && npm install && npm run dev
+# Dashboard available at: http://localhost:5173
 ```
 
-### 👉 [**CLICK HERE TO OPEN LOCAL DASHBOARD (http://localhost:5173)**](http://localhost:5173) 👈
+> ⚠️ `localhost` links only work **on your own machine** after running the two commands above.
+> Use the **live Vercel links** above to open the platform from any device without any setup.
 
-| Service | Working Clickable Localhost Link | Command |
-|---|---|---|
-| 🖥️ **Local SOC Dashboard** | [http://localhost:5173](http://localhost:5173) | `cd frontend && npm run dev` |
-| ⚙️ **Local Backend API** | [http://localhost:8000](http://localhost:8000) | `python backend/main.py` |
-| 📖 **Local API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | `python backend/main.py` |
-
-> ⚠️ *The localhost link works after running `npm run dev` and `python backend/main.py` on your machine.*
