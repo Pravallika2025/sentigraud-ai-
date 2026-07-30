@@ -7,6 +7,7 @@
 **Real-time AI-powered cybersecurity monitoring, threat detection, and autonomous defense dashboard**
 
 [![Live on Vercel](https://img.shields.io/badge/🚀_Live_Demo-Vercel-000000?style=for-the-badge&logo=vercel)](https://sentinelgpt-ai.vercel.app)
+[![Localhost Dashboard](https://img.shields.io/badge/🏠_Localhost_Dashboard-http%3A%2F%2Flocalhost%3A5173-00f2ff?style=for-the-badge&logo=vite&logoColor=black)](http://localhost:5173)
 [![React 19](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
@@ -181,17 +182,17 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 | 📖 **Live API Docs (Swagger)** | [Click to Open Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | Interactive Swagger Documentation | 🟢 Active |
 | 📋 **Live API Specs (OpenAPI)** | [Click to Open OpenAPI Schema](https://sentinelgpt-ai.vercel.app/openapi.json) | OpenAPI 3.0 JSON Schema | 🟢 Active |
 
-### 🏠 Local Development Access
+### 🏠 Local Development Access (Clickable Localhost Links)
 
-| Component | Local URL | Live Fallback Link | Command to Run |
+| Component | Working Clickable Local Link | Live Cloud Link | Command to Run |
 |---|---|---|---|
-| 🖥️ **Frontend App** | `http://localhost:5173` | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
-| ⚙️ **Backend API (Health)** | `http://localhost:8000/api/health` | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) | `python backend/main.py` |
-| 📖 **Backend API Docs** | `http://localhost:8000/api/docs` | [Open Live API Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
+| 🖥️ **Frontend Dashboard** | [http://localhost:5173](http://localhost:5173) | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `cd frontend && npm run dev` |
+| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) | `python backend/main.py` |
+| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | [Open Live API Docs](https://sentinelgpt-ai.vercel.app/docs) | `python backend/main.py` |
 | 🔌 **WebSocket Stream** | `ws://localhost:8000/ws` | — | `python backend/main.py` |
 | 💾 **SQLite Database** | `./sentinel_production.db` | — | Auto-created on start |
 
-> **Note:** The Live Vercel links are accessible 24/7 anywhere. The `localhost` URLs work when running the application locally on your machine.
+> **Note:** The `localhost` URLs are active clickable links that open directly when running the application on your local machine.
 
 ---
 
@@ -288,14 +289,16 @@ ADMIN_PASSWORD=your_admin_password
 ---
 
 ## 🏠 Localhost Deployment
-
+ 
 After running both frontend and backend:
-
-| Service | Command | Working Live URL | Local Dev URL |
+ 
+| Service | Command | Working Localhost Link | Live Cloud URL |
 |---|---|---|---|
-| **Frontend** | `cd frontend && npm run dev` | [Open Live Platform](https://sentinelgpt-ai.vercel.app) | `http://localhost:5173` |
-| **Backend API** | `python backend/main.py` | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) | `http://localhost:8000` |
-| **API Docs** | `python backend/main.py` | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) | `http://localhost:8000/api/docs` |
+| **Frontend Dashboard** | `cd frontend && npm run dev` | [http://localhost:5173](http://localhost:5173) | [Open Live Platform](https://sentinelgpt-ai.vercel.app) |
+| **Backend API** | `python backend/main.py` | [http://localhost:8000](http://localhost:8000) | [Open Live API Health](https://sentinelgpt-ai.vercel.app/health) |
+| **API Docs** | `python backend/main.py` | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | [Open Live Swagger Docs](https://sentinelgpt-ai.vercel.app/docs) |
+
+👉 **Click here to open Local Dashboard**: [http://localhost:5173](http://localhost:5173)
 
 The Vite dev server automatically proxies `/api/*` requests to the backend, so both services communicate seamlessly.
 
