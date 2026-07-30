@@ -1,6 +1,7 @@
 import os
 import time
 import random
+import json
 import jwt
 import hashlib
 from datetime import datetime, timedelta
@@ -131,17 +132,16 @@ def seed_database_if_needed():
 seed_database_if_needed()
 
 # ============================================================
-# FASTAPI APP — middleware MUST be added before routes
+# FASTAPI APP
 # ============================================================
 app = FastAPI(
     title="SentinelGPT API",
     description="Autonomous Cyber Defense Serverless Backend — SentinelGPT Platform",
     version="1.0.0",
-    docs_url=None,        # We serve custom swagger below
-    openapi_url=None,     # We serve custom openapi below
+    docs_url=None,
+    openapi_url=None,
 )
 
-# CORS middleware added FIRST before any routes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -151,22 +151,51 @@ app.add_middleware(
 )
 
 # ============================================================
-# SWAGGER UI + OPENAPI ROUTES — registered AFTER middleware
+# SWAGGER UI + OPENAPI ROUTES
 # ============================================================
 @app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
 @app.get("/docs/", include_in_schema=False, response_class=HTMLResponse)
 @app.get("/api/docs", include_in_schema=False, response_class=HTMLResponse)
 @app.get("/api/docs/", include_in_schema=False, response_class=HTMLResponse)
 async def swagger_ui(request: Request):
-    req_path = request.url.path
-    openapi_url = "/api/openapi.json" if req_path.startswith("/api") else "/openapi.json"
-    html = get_swagger_ui_html(
-        openapi_url=openapi_url,
-        title="SentinelGPT API Documentation",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
+    schema = get_openapi(
+        title="SentinelGPT API",
+        version="1.0.0",
+        description="Autonomous Cyber Defense REST API",
+        routes=app.routes,
     )
-    return HTMLResponse(content=html.body)
+    schema_json = json.dumps(schema)
+    html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+    <title>SentinelGPT API Documentation</title>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+    <style>
+        body {{ margin: 0; padding: 0; background: #0b0f19; color: #fff; font-family: sans-serif; }}
+        .swagger-ui .topbar {{ display: none; }}
+    </style>
+</head>
+<body>
+    <div id="swagger-ui"></div>
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = function() {{
+            SwaggerUIBundle({{
+                spec: {schema_json},
+                dom_id: '#swagger-ui',
+                deepLinking: true,
+                presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset
+                ]
+            }});
+        }};
+    </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content)
 
 @app.get("/openapi.json", include_in_schema=False)
 @app.get("/api/openapi.json", include_in_schema=False)
@@ -231,27 +260,113 @@ def get_current_user(request: Request):
 @app.get("/")
 @app.get("/api")
 @app.get("/api/")
-async def root():
-    return {
+async def root(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return HTMLResponse(content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelGPT Core API</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f19; color: #e2e8f0; margin: 0; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 36px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
+        .status-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 8px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
+        .dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; }
+        h1 { margin-top: 20px; margin-bottom: 8px; font-size: 26px; color: #f8fafc; font-weight: 700; }
+        p { color: #94a3b8; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+        .info-grid { background: #0f172a; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; border: 1px solid #1e293b; }
+        .info-item { color: #94a3b8; }
+        .info-item strong { color: #cbd5e1; display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .actions { margin-top: 28px; display: flex; gap: 14px; }
+        .btn { flex: 1; text-align: center; background: #3b82f6; color: white; padding: 12px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .btn:hover { background: #2563eb; }
+        .btn-sec { background: #334155; }
+        .btn-sec:hover { background: #475569; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="status-badge"><span class="dot"></span> SYSTEM OPERATIONAL</div>
+        <h1>SentinelGPT Core API</h1>
+        <p>Autonomous Cyber Defense Core Backend Service is online and operational.</p>
+        <div class="info-grid">
+            <div class="info-item"><strong>SERVICE</strong>SentinelGPT Core</div>
+            <div class="info-item"><strong>VERSION</strong>v1.0.0 Production</div>
+            <div class="info-item"><strong>ENVIRONMENT</strong>Vercel Serverless</div>
+            <div class="info-item"><strong>STATUS</strong>200 OK (Nominal)</div>
+        </div>
+        <div class="actions">
+            <a href="/" class="btn">Launch Platform</a>
+            <a href="/docs" class="btn btn-sec">API Documentation</a>
+        </div>
+    </div>
+</body>
+</html>""")
+    return JSONResponse(content={
         "status": "NOMINAL",
         "service": "SentinelGPT Autonomous Defense Core",
         "version": "1.0.0",
         "docs": "https://sentinelgpt-ai.vercel.app/docs",
         "platform": "https://sentinelgpt-ai.vercel.app",
         "environment": "Vercel Serverless Production"
-    }
+    })
 
 @app.get("/health")
 @app.get("/health/")
 @app.get("/api/health")
 @app.get("/api/health/")
-async def health_check():
-    return {
+async def health_check(request: Request):
+    accept = request.headers.get("accept", "")
+    if "text/html" in accept:
+        return HTMLResponse(content="""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelGPT Core API — Health Status</title>
+    <style>
+        body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f19; color: #e2e8f0; margin: 0; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 36px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
+        .status-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 8px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
+        .dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; }
+        h1 { margin-top: 20px; margin-bottom: 8px; font-size: 26px; color: #f8fafc; font-weight: 700; }
+        p { color: #94a3b8; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
+        .info-grid { background: #0f172a; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; border: 1px solid #1e293b; }
+        .info-item { color: #94a3b8; }
+        .info-item strong { color: #cbd5e1; display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
+        .actions { margin-top: 28px; display: flex; gap: 14px; }
+        .btn { flex: 1; text-align: center; background: #3b82f6; color: white; padding: 12px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .btn:hover { background: #2563eb; }
+        .btn-sec { background: #334155; }
+        .btn-sec:hover { background: #475569; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="status-badge"><span class="dot"></span> SYSTEM HEALTH NOMINAL</div>
+        <h1>SentinelGPT Core API</h1>
+        <p>Autonomous Cyber Defense Core Backend Service is online and fully operational.</p>
+        <div class="info-grid">
+            <div class="info-item"><strong>SERVICE</strong>SentinelGPT Core</div>
+            <div class="info-item"><strong>VERSION</strong>v1.0.0 Production</div>
+            <div class="info-item"><strong>ENVIRONMENT</strong>Vercel Serverless</div>
+            <div class="info-item"><strong>STATUS</strong>200 OK (Nominal)</div>
+        </div>
+        <div class="actions">
+            <a href="/" class="btn">Launch Platform</a>
+            <a href="/docs" class="btn btn-sec">API Documentation</a>
+        </div>
+    </div>
+</body>
+</html>""")
+    return JSONResponse(content={
         "status": "NOMINAL",
         "service": "SentinelGPT Autonomous Defense Core",
         "version": "1.0.0",
         "environment": "Vercel Serverless Production"
-    }
+    })
 
 @app.post("/login")
 @app.post("/api/login")

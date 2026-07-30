@@ -27,6 +27,18 @@
       "dest": "/api/index.py"
     },
     {
+      "src": "/api/docs(.*)",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/api/openapi.json",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/api/health(.*)",
+      "dest": "/api/index.py"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/index.py"
     },
