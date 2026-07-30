@@ -145,11 +145,15 @@ app = FastAPI(
 )
 
 @app.get("/api/docs", include_in_schema=False)
+@app.get("/api/docs/", include_in_schema=False)
 @app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
+@app.get("/docs/", include_in_schema=False)
+async def custom_swagger_ui_html(request: Request):
     return get_swagger_ui_html(
         openapi_url="/api/openapi.json",
-        title="SentinelGPT API Docs"
+        title="SentinelGPT API Docs",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
     )
 
 @app.get("/api/openapi.json", include_in_schema=False)

@@ -166,11 +166,15 @@ app = FastAPI(title="Sentinel SOC - Production Core", docs_url=None, openapi_url
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.get("/api/docs", include_in_schema=False)
+@app.get("/api/docs/", include_in_schema=False)
 @app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
+@app.get("/docs/", include_in_schema=False)
+async def custom_swagger_ui_html(request: Request):
     return get_swagger_ui_html(
         openapi_url="/api/openapi.json",
-        title="Sentinel SOC API Docs"
+        title="Sentinel SOC API Docs",
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css"
     )
 
 @app.get("/api/openapi.json", include_in_schema=False)
