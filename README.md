@@ -184,9 +184,9 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 
 | Component | URL | Description |
 |---|---|---|
-| 🖥️ **Frontend** | [http://localhost:5173](http://localhost:5173) | React dev server (Vite) |
-| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | FastAPI (Uvicorn) |
-| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | Swagger UI |
+| 🖥️ **Frontend** | [http://localhost:5173](https://sentinelgpt-ai.vercel.app) | React dev server (Vite) |
+| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](https://sentinelgpt-ai.vercel.app/api/health) | FastAPI (Uvicorn) |
+| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](https://sentinelgpt-ai.vercel.app/api/docs) | Swagger UI |
 | 🔌 **WebSocket** | `ws://localhost:8000/ws` | Real-time event stream |
 | 💾 **Database** | `./sentinel_production.db` | SQLite (auto-created) |
 
