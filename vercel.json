@@ -2,10 +2,17 @@
   "version": 2,
   "builds": [
     {
+<<<<<<< HEAD
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
+=======
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "frontend/dist"
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
       }
     },
     {

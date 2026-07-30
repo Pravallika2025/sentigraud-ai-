@@ -2,6 +2,10 @@ import os
 import time
 import random
 import jwt
+<<<<<<< HEAD
+=======
+import hashlib
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 from fastapi import FastAPI, Request, Depends, HTTPException, status
@@ -50,12 +54,61 @@ class BlockedIP(Base):
     reason = Column(String, default="Autonomous Quarantine")
     ts = Column(DateTime, default=datetime.utcnow)
 
+<<<<<<< HEAD
+=======
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String)
+    password_hash = Column(String)
+    full_name = Column(String, nullable=True)
+    role = Column(String, nullable=True)
+    organization = Column(String, nullable=True)
+    ts = Column(DateTime, default=datetime.utcnow)
+
+try:
+    # Try querying to see if User table has the new columns
+    db_check = SessionLocal()
+    db_check.execute("SELECT role, full_name, organization FROM users LIMIT 1")
+    db_check.close()
+except Exception:
+    # If not, recreate tables to match new schema
+    try:
+        Base.metadata.drop_all(bind=engine)
+    except Exception:
+        pass
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 Base.metadata.create_all(bind=engine)
 
 # --- SEED INITIAL DATA IF EMPTY ---
 def seed_database_if_needed():
     db = SessionLocal()
     try:
+<<<<<<< HEAD
+=======
+        # Seed default role-based credentials if not present
+        default_users = [
+            ("Admin User", "admin@sentinel.ai", "Admin@123", "Administrator", "Sentinel Security Core"),
+            ("Analyst User", "analyst@sentinel.ai", "Analyst@123", "Security Analyst", "Global SOC Center"),
+            ("Demo User", "demo@sentinel.ai", "Demo@123", "Demo Observer", "Public Sandbox")
+        ]
+        for name, email, password, role, org in default_users:
+            username = email.split('@')[0]
+            exists = db.query(User).filter((User.username == username) | (User.email == email)).first()
+            if not exists:
+                new_user = User(
+                    username=username,
+                    email=email,
+                    password_hash=hashlib.sha256(password.encode()).hexdigest(),
+                    full_name=name,
+                    role=role,
+                    organization=org
+                )
+                db.add(new_user)
+        db.commit()
+
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
         if db.query(SOCIncident).count() == 0:
             sample_threats = [
                 ("185.220.101.5", "Credential Stuffing Pattern", 88),
@@ -113,6 +166,17 @@ class SimThreatRequest(BaseModel):
     type: Optional[str] = None
     score: Optional[int] = None
 
+<<<<<<< HEAD
+=======
+class RegisterRequest(BaseModel):
+    username: str
+    email: str
+    password: str
+    full_name: Optional[str] = ""
+    role: Optional[str] = "Security Analyst"
+    organization: Optional[str] = ""
+
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 # --- AUTH HELPERS ---
 def create_access_token(data: dict):
     to_encode = data.copy()
@@ -165,11 +229,89 @@ async def login_endpoint(request: Request):
         username = form.get("username", "admin")
         password = form.get("password", "")
 
+<<<<<<< HEAD
     if password != ADMIN_PASSWORD and password != "admin123":
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     token = create_access_token({"sub": username})
     return {"access_token": token, "token_type": "bearer"}
+=======
+    username_clean = username.strip().lower()
+    
+    # 1. Check default admin credentials
+    if username_clean == "admin" and (password == ADMIN_PASSWORD or password == "admin123"):
+        token = create_access_token({"sub": "admin"})
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "username": "admin",
+            "email": "admin@sentinel.ai",
+            "full_name": "Administrator",
+            "role": "Administrator",
+            "organization": "Sentinel Security Core"
+        }
+        
+    # 2. Check database-backed users
+    db = SessionLocal()
+    try:
+        user = db.query(User).filter((User.username == username_clean) | (User.email == username_clean)).first()
+        if user:
+            pwd_hash = hashlib.sha256(password.encode()).hexdigest()
+            if user.password_hash == pwd_hash:
+                token = create_access_token({"sub": user.username})
+                return {
+                    "access_token": token,
+                    "token_type": "bearer",
+                    "username": user.username,
+                    "email": user.email,
+                    "full_name": user.full_name or user.username,
+                    "role": user.role or "Security Analyst",
+                    "organization": user.organization or "Sentinel Operations"
+                }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        db.close()
+        
+    raise HTTPException(status_code=401, detail="Invalid credentials")
+
+@app.post("/register")
+@app.post("/api/register")
+async def register_endpoint(req: RegisterRequest):
+    db = SessionLocal()
+    try:
+        username_clean = req.username.strip().lower()
+        email_clean = req.email.strip().lower()
+        if not username_clean or not req.password or not email_clean:
+            raise HTTPException(status_code=400, detail="Username, email, and password are required")
+        
+        # Check if user already exists
+        existing = db.query(User).filter((User.username == username_clean) | (User.email == email_clean)).first()
+        if existing:
+            raise HTTPException(status_code=400, detail="Username or email already registered")
+        
+        # Hash password
+        pwd_hash = hashlib.sha256(req.password.encode()).hexdigest()
+        
+        new_user = User(
+            username=username_clean,
+            email=email_clean,
+            password_hash=pwd_hash,
+            full_name=req.full_name or username_clean,
+            role=req.role or "Security Analyst",
+            organization=req.organization or "Sentinel Operations"
+        )
+        db.add(new_user)
+        db.commit()
+        return {"status": "success", "message": "User registered successfully"}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        db.close()
+>>>>>>> b14c3a6d116677458df651f45a076b68ee997c05
 
 @app.get("/snapshot")
 @app.get("/api/snapshot")
