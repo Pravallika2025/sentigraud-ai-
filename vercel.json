@@ -19,6 +19,14 @@
       "dest": "/api/index.py"
     },
     {
+      "src": "/api",
+      "dest": "/api/index.py"
+    },
+    {
+      "src": "/docs",
+      "dest": "/api/index.py"
+    },
+    {
       "handle": "filesystem"
     },
     {

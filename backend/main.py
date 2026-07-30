@@ -159,8 +159,35 @@ async def demo_telemetry_loop():
             db.rollback()
         await asyncio.sleep(6)
 
-app = FastAPI(title="Sentinel SOC - Production Core", docs_url="/api/docs", openapi_url="/api/openapi.json")
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
+app = FastAPI(title="Sentinel SOC - Production Core", docs_url=None, openapi_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+
+@app.get("/api/docs", include_in_schema=False)
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title="Sentinel SOC API Docs"
+    )
+
+@app.get("/api/openapi.json", include_in_schema=False)
+@app.get("/openapi.json", include_in_schema=False)
+async def custom_openapi():
+    return get_openapi(title="Sentinel SOC", version="1.0.0", routes=app.routes)
+
+@app.get("/")
+@app.get("/api")
+@app.get("/api/")
+async def root_endpoint():
+    return {
+        "status": "NOMINAL",
+        "service": "SentinelGPT Autonomous Core",
+        "version": "1.0.0",
+        "docs": "/api/docs"
+    }
 
 @app.on_event("startup")
 async def startup():
@@ -168,7 +195,7 @@ async def startup():
 
 @app.middleware("http")
 async def perimeter_middleware(request: Request, call_next):
-    if request.url.path not in ["/login", "/api/login", "/snapshot", "/api/snapshot", "/ws", "/health", "/api/health"]:
+    if request.url.path not in ["/", "/api", "/api/", "/login", "/api/login", "/snapshot", "/api/snapshot", "/ws", "/health", "/api/health", "/docs", "/api/docs", "/openapi.json", "/api/openapi.json"]:
         db = SessionLocal()
         try:
             ip = request.client.host if request.client else "127.0.0.1"

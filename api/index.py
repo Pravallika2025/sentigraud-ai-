@@ -132,14 +132,42 @@ def seed_database_if_needed():
 
 seed_database_if_needed()
 
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
+
 # --- FASTAPI APP INITIALIZATION ---
 app = FastAPI(
     title="SentinelGPT API",
     description="Autonomous Cyber Defense Serverless Backend for Vercel",
     version="1.0.0",
-    docs_url="/api/docs",
-    openapi_url="/api/openapi.json"
+    docs_url=None,
+    openapi_url=None
 )
+
+@app.get("/api/docs", include_in_schema=False)
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="/api/openapi.json",
+        title="SentinelGPT API Docs"
+    )
+
+@app.get("/api/openapi.json", include_in_schema=False)
+@app.get("/openapi.json", include_in_schema=False)
+async def custom_openapi():
+    return get_openapi(title="SentinelGPT API", version="1.0.0", routes=app.routes)
+
+@app.get("/")
+@app.get("/api")
+@app.get("/api/")
+async def root_endpoint():
+    return {
+        "status": "NOMINAL",
+        "service": "SentinelGPT Autonomous Defense Core",
+        "version": "1.0.0",
+        "docs": "/api/docs",
+        "environment": "Vercel Serverless Production"
+    }
 
 app.add_middleware(
     CORSMiddleware,
