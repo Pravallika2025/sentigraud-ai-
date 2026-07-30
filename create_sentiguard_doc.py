@@ -14,19 +14,18 @@ DESKTOP_DIR = r"C:\Users\User\OneDrive\Desktop" if os.path.exists(r"C:\Users\Use
 os.makedirs(IMG_DIR, exist_ok=True)
 
 # ------------------------------------------------------------------------------
-# 1. GENERATE CLEAN DIAGRAM IMAGES (BLACK & WHITE / CLEAN LINE ART LIKE SAMPLE)
+# 1. GENERATE CLEAN DIAGRAM IMAGES WITH PERFECT CENTERING
 # ------------------------------------------------------------------------------
 def generate_sample_style_arch_diagram():
-    width, height = 750, 520
+    width, height = 720, 500
     img = Image.new('RGB', (width, height), color='#ffffff')
     draw = ImageDraw.Draw(img)
 
     try:
-        font_main = ImageFont.truetype("times.ttf", 13)
-        font_bold = ImageFont.truetype("timesbd.ttf", 14)
+        font_bold = ImageFont.truetype("timesbd.ttf", 13)
         font_sub = ImageFont.truetype("times.ttf", 11)
     except Exception:
-        font_main = font_bold = font_sub = ImageFont.load_default()
+        font_bold = font_sub = ImageFont.load_default()
 
     def draw_box(x1, y1, x2, y2, text, subtext=""):
         draw.rectangle([x1, y1, x2, y2], fill="#ffffff", outline="#000000", width=1)
@@ -40,41 +39,38 @@ def generate_sample_style_arch_diagram():
         draw.line([x1, y1, x2, y2], fill="#000000", width=1)
         draw.polygon([(x2, y2), (x2-5, y2-8), (x2+5, y2-8)], fill="#000000")
 
-    # Flow boxes matching sample Page 6 / Page 11
-    draw_box(240, 15, 510, 55, "ADMINISTRATOR", "(Login & Telemetry Setup)")
-    draw_arrow(375, 55, 375, 80)
+    draw_box(230, 15, 490, 55, "ADMINISTRATOR", "(Login & Telemetry Setup)")
+    draw_arrow(360, 55, 360, 80)
 
-    draw_box(120, 80, 630, 125, "FRONTEND INTERFACE (HTML5 / CSS3 / React 19 / JS)", "Login | Dashboard | Real-Time Feed | AI Chat | File Scanner")
-    draw_arrow(375, 125, 375, 150)
+    draw_box(100, 80, 620, 125, "FRONTEND INTERFACE (HTML5 / CSS3 / React 19 / JS)", "Login | Dashboard | Real-Time Feed | AI Chat | File Scanner")
+    draw_arrow(360, 125, 360, 150)
 
-    draw_box(140, 150, 610, 195, "FASTAPI APPLICATION (main.py / index.py)", "Authentication | Routing | Session | Request Handling")
-    draw_arrow(375, 195, 375, 220)
+    draw_box(120, 150, 600, 195, "FASTAPI APPLICATION (main.py / index.py)", "Authentication | Routing | Session | Request Handling")
+    draw_arrow(360, 195, 360, 220)
 
-    # Agents Split
-    draw.line([230, 220, 520, 220], fill="#000000", width=1)
-    draw_arrow(230, 220, 230, 245)
-    draw_arrow(520, 220, 520, 245)
+    draw.line([210, 220, 510, 220], fill="#000000", width=1)
+    draw_arrow(210, 220, 210, 245)
+    draw_arrow(510, 220, 510, 245)
 
-    draw_box(80, 245, 380, 320, "TELEMETRY MONITOR AGENT", "• Risk Scoring (0-100)\n• MITRE ATT&CK Mapping\n• Velocity Anomaly Analysis")
-    draw_box(400, 245, 700, 320, "AUTONOMOUS QUARANTINE AGENT", "• High-Risk IP Quarantine (>= 75)\n• AI Remediation Advice\n• Manual Revoke Validation")
+    draw_box(60, 245, 360, 320, "TELEMETRY MONITOR AGENT", "• Risk Scoring (0-100)\n• MITRE ATT&CK Mapping\n• Velocity Anomaly Analysis")
+    draw_box(380, 245, 680, 320, "AUTONOMOUS QUARANTINE AGENT", "• High-Risk IP Quarantine (>= 75)\n• AI Remediation Advice\n• Manual Revoke Validation")
 
-    # DB Merge
-    draw.line([230, 320, 230, 340], fill="#000000", width=1)
-    draw.line([520, 320, 520, 340], fill="#000000", width=1)
-    draw.line([230, 340, 520, 340], fill="#000000", width=1)
-    draw_arrow(375, 340, 375, 365)
+    draw.line([210, 320, 210, 340], fill="#000000", width=1)
+    draw.line([510, 320, 510, 340], fill="#000000", width=1)
+    draw.line([210, 340, 510, 340], fill="#000000", width=1)
+    draw_arrow(360, 340, 360, 365)
 
-    draw_box(150, 365, 600, 420, "SQLALCHEMY DATABASE LAYER", "Admin Table | SOC Incident Table | Blocked IP Table | Perimeter Logs")
-    draw_arrow(375, 420, 375, 445)
+    draw_box(130, 365, 590, 420, "SQLALCHEMY DATABASE LAYER", "Admin Table | SOC Incident Table | Blocked IP Table | Perimeter Logs")
+    draw_arrow(360, 420, 360, 445)
 
-    draw_box(100, 445, 650, 495, "DASHBOARD | REAL-TIME TELEMETRY | QUARANTINE | JSON EXPORT", "SQLite (Local) / Vercel Serverless (Production)")
+    draw_box(90, 445, 630, 490, "DASHBOARD | REAL-TIME TELEMETRY | QUARANTINE | JSON EXPORT", "SQLite (Local) / Vercel Serverless (Production)")
 
     path = os.path.join(IMG_DIR, "sample_arch_diagram.png")
     img.save(path)
     return path
 
 def generate_sample_style_flow_diagram():
-    width, height = 750, 500
+    width, height = 720, 480
     img = Image.new('RGB', (width, height), color='#ffffff')
     draw = ImageDraw.Draw(img)
 
@@ -96,32 +92,32 @@ def generate_sample_style_flow_diagram():
         draw.line([x1, y1, x2, y2], fill="#000000", width=1)
         draw.polygon([(x2, y2), (x2-5, y2-8), (x2+5, y2-8)], fill="#000000")
 
-    draw_box(200, 10, 550, 50, "ADMINISTRATOR", "Login and Telemetry Setup")
-    draw_arrow(375, 50, 375, 75)
+    draw_box(190, 10, 530, 48, "ADMINISTRATOR", "Login and Telemetry Setup")
+    draw_arrow(360, 48, 360, 70)
 
-    draw_box(180, 75, 570, 115, "WEB BROWSER", "React 19 Glassmorphism Single Page Application")
-    draw_arrow(375, 115, 375, 140)
+    draw_box(170, 70, 550, 108, "WEB BROWSER", "React 19 Glassmorphism Single Page Application")
+    draw_arrow(360, 108, 360, 130)
 
-    draw_box(140, 140, 610, 185, "FRONTEND TECHNOLOGIES", "HTML5 | CSS3 | JavaScript | Vite 5.4 SPA")
-    draw_arrow(375, 185, 375, 210)
+    draw_box(130, 130, 590, 175, "FRONTEND TECHNOLOGIES", "HTML5 | CSS3 | JavaScript | Vite 5.4 SPA")
+    draw_arrow(360, 175, 360, 198)
 
-    draw_box(140, 210, 610, 260, "BACKEND TECHNOLOGIES", "Python | FastAPI | Uvicorn | Agentic AI Engine\n(Telemetry Monitor Agent & Autonomous Quarantine Agent)")
-    draw_arrow(375, 260, 375, 285)
+    draw_box(130, 198, 590, 248, "BACKEND TECHNOLOGIES", "Python | FastAPI | Uvicorn | Agentic AI Engine\n(Telemetry Monitor Agent & Autonomous Quarantine Agent)")
+    draw_arrow(360, 248, 360, 270)
 
-    draw_box(140, 285, 610, 345, "DATABASE TECHNOLOGIES", "SQLAlchemy ORM\nSQLite (Local) | PostgreSQL / Vercel Storage (Production)")
-    draw_arrow(375, 345, 375, 370)
+    draw_box(130, 270, 590, 328, "DATABASE TECHNOLOGIES", "SQLAlchemy ORM\nSQLite (Local) | PostgreSQL / Vercel Storage (Production)")
+    draw_arrow(360, 328, 360, 350)
 
-    draw_box(140, 370, 610, 420, "OUTPUT & REPORT GENERATION", "JSON Log Export | Interactive Charts | Live SOC Dashboard")
-    draw_arrow(375, 420, 375, 445)
+    draw_box(130, 350, 590, 398, "OUTPUT & REPORT GENERATION", "JSON Log Export | Interactive Charts | Live SOC Dashboard")
+    draw_arrow(360, 398, 360, 420)
 
-    draw_box(180, 445, 570, 485, "LIVE DEPLOYMENT", "https://sentinelgpt-ai.vercel.app")
+    draw_box(170, 420, 550, 460, "LIVE DEPLOYMENT", "https://sentinelgpt-ai.vercel.app")
 
     path = os.path.join(IMG_DIR, "sample_flow_diagram.png")
     img.save(path)
     return path
 
 # ------------------------------------------------------------------------------
-# 2. CREATE EXACT 15-PAGE WORD DOCUMENT MATCHING REFERENCE PDF SCREENSHOTS
+# 2. CREATE ADJUSTED WORD DOCUMENT (TABLE POINT REMOVED, PERFECT IMAGE ALIGNMENT)
 # ------------------------------------------------------------------------------
 def create_exact_reference_word_document(save_paths):
     arch_img = generate_sample_style_arch_diagram()
@@ -144,8 +140,8 @@ def create_exact_reference_word_document(save_paths):
 
     def add_heading_1(text):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(18)
-        p.paragraph_format.space_after = Pt(12)
+        p.paragraph_format.space_before = Pt(16)
+        p.paragraph_format.space_after = Pt(10)
         run = p.add_run(text)
         run.font.name = 'Times New Roman'
         run.font.size = Pt(16)
@@ -155,8 +151,8 @@ def create_exact_reference_word_document(save_paths):
 
     def add_heading_2(text):
         p = doc.add_paragraph()
-        p.paragraph_format.space_before = Pt(14)
-        p.paragraph_format.space_after = Pt(6)
+        p.paragraph_format.space_before = Pt(12)
+        p.paragraph_format.space_after = Pt(4)
         run = p.add_run(text)
         run.font.name = 'Times New Roman'
         run.font.size = Pt(13)
@@ -166,7 +162,7 @@ def create_exact_reference_word_document(save_paths):
 
     def add_para(text, bold_prefix=None):
         p = doc.add_paragraph()
-        p.paragraph_format.space_after = Pt(8)
+        p.paragraph_format.space_after = Pt(6)
         p.paragraph_format.line_spacing = 1.5
         p.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
         if bold_prefix:
@@ -179,12 +175,12 @@ def create_exact_reference_word_document(save_paths):
         run.font.color.rgb = RGBColor(0, 0, 0)
         return p
 
-    def add_centered_image(img_path, width_inches=5.8):
+    def add_centered_image(img_path, width_inches=5.5):
         if os.path.exists(img_path):
             p = doc.add_paragraph()
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p.paragraph_format.space_before = Pt(14)
-            p.paragraph_format.space_after = Pt(14)
+            p.paragraph_format.space_before = Pt(12)
+            p.paragraph_format.space_after = Pt(12)
             p.add_run().add_picture(img_path, width=Inches(width_inches))
 
     # ==========================================================================
@@ -237,13 +233,13 @@ def create_exact_reference_word_document(save_paths):
     doc.add_page_break()
 
     # ==========================================================================
-    # PAGE 3: DIFFERENCE TABLE (Matching Screenshot Page 3)
+    # PAGE 3: DIFFERENCE TABLE (Adjusted to 8 Points - Removed Last Point to fit Page 3 perfectly)
     # ==========================================================================
     add_heading_1("Difference Between Traditional Security Operations and the Proposed Agentic AI-Based SentinelGPT System")
 
     add_para("Traditional security monitoring is done manually using paper records, basic log viewers, or simple firewall management software. It requires more time and effort and may result in response delays and human error. The proposed Agentic AI-Based SentinelGPT System automates threat detection and mitigation using intelligent software agents. It reduces manual work, improves accuracy, and provides features such as real-time telemetry visualization, heuristic anomaly scoring, automated quarantine, AI triage assistance, and log export. The table below shows the comparison between the traditional system and the proposed system. The following table highlights the major differences between the traditional security operations system and the proposed Agentic AI-based system.")
 
-    diff_table = doc.add_table(rows=10, cols=2)
+    diff_table = doc.add_table(rows=9, cols=2)
     diff_table.alignment = WD_TABLE_ALIGNMENT.CENTER
     diff_table.style = 'Table Grid'
 
@@ -251,6 +247,7 @@ def create_exact_reference_word_document(save_paths):
     hdr_cells[0].paragraphs[0].add_run("Traditional Security Operations System").bold = True
     hdr_cells[1].paragraphs[0].add_run("Proposed Agentic AI Based SentinelGPT System").bold = True
 
+    # 8 Key Points (Last point removed as requested)
     table_data = [
         ("Security alerts are monitored manually using basic log viewers or static firewall software.",
          "Threats are detected and analyzed automatically using intelligent software agents based on heuristic security models."),
@@ -268,8 +265,6 @@ def create_exact_reference_word_document(save_paths):
          "Uses an Autonomous Quarantine Agent to automatically detect and eliminate high-risk threats before system compromise."),
         ("Provides limited information about how security decisions and threat scores are made.",
          "Maintains detailed agent logs and MITRE ATT&CK mapping that record security activities for better transparency."),
-        ("Security reports often require manual formatting before sharing with executive teams.",
-         "Generates structured JSON incident logs and interactive reports that can be exported directly."),
     ]
 
     for idx, (trad_text, prop_text) in enumerate(table_data, start=1):
@@ -320,7 +315,7 @@ def create_exact_reference_word_document(save_paths):
     # ==========================================================================
     # PAGE 6: ARCHITECTURE DIAGRAM & TECHNOLOGIES (Matching Screenshot Page 6)
     # ==========================================================================
-    add_centered_image(arch_img, width_inches=5.8)
+    add_centered_image(arch_img, width_inches=5.5)
 
     add_heading_1("Technologies Used")
     add_para("The Agentic AI Based SentinelGPT System is developed using a combination of modern frontend, backend, database, and AI technologies. These technologies work together to automate threat monitoring, manage security schedules efficiently, and provide a secure and user-friendly web application. The technology stack used in this project is described below.")
@@ -410,7 +405,7 @@ def create_exact_reference_word_document(save_paths):
     add_para("Vercel Cloud Platform is used to deploy the full-stack FastAPI and React application online.")
     add_para("Environment variables are managed using the .env configuration file.")
 
-    add_centered_image(flow_img, width_inches=5.8)
+    add_centered_image(flow_img, width_inches=5.5)
 
     doc.add_page_break()
 
@@ -451,7 +446,7 @@ def create_exact_reference_word_document(save_paths):
 
     add_heading_2("Architecture:")
 
-    add_centered_image(flow_img, width_inches=5.8)
+    add_centered_image(flow_img, width_inches=5.5)
 
     doc.add_page_break()
 
