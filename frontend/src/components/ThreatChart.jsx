@@ -15,7 +15,6 @@ const ThreatChart = ({ logs = [] }) => {
       try {
         label = new Date(tsVal).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       } catch (e) {
-      } catch {
         label = String(tsVal);
       }
       return {
