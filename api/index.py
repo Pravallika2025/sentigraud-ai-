@@ -136,7 +136,9 @@ seed_database_if_needed()
 app = FastAPI(
     title="SentinelGPT API",
     description="Autonomous Cyber Defense Serverless Backend for Vercel",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json"
 )
 
 app.add_middleware(

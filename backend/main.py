@@ -159,7 +159,7 @@ async def demo_telemetry_loop():
             db.rollback()
         await asyncio.sleep(6)
 
-app = FastAPI(title="Sentinel SOC - Production Core")
+app = FastAPI(title="Sentinel SOC - Production Core", docs_url="/api/docs", openapi_url="/api/openapi.json")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("startup")

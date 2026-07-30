@@ -185,7 +185,8 @@ The platform monitors network threats in real-time, maps them to **MITRE ATT&CK*
 | Component | URL | Description |
 |---|---|---|
 | 🖥️ **Frontend** | [http://localhost:5173](http://localhost:5173) | React dev server (Vite) |
-| ⚙️ **Backend API** | [http://localhost:8000](http://localhost:8000) | FastAPI (Uvicorn) |
+| ⚙️ **Backend API (Health)** | [http://localhost:8000/api/health](http://localhost:8000/api/health) | FastAPI (Uvicorn) |
+| 📖 **Backend API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | Swagger UI |
 | 🔌 **WebSocket** | `ws://localhost:8000/ws` | Real-time event stream |
 | 💾 **Database** | `./sentinel_production.db` | SQLite (auto-created) |
 
@@ -243,9 +244,6 @@ The platform consists of interconnected components working together:
 
 ### 📁 Heuristic Payload File Scanner
 ![SentinelGPT File Scanner Interface](docs/images/file_scanner.png)
-
-### 📺 Deployed Operations Walkthrough
-![SentinelGPT Operations Walkthrough](docs/images/walkthrough_demo.webp)
 
 ---
 
