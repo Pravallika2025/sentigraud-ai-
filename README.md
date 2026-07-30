@@ -473,3 +473,49 @@ GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
 *Built with ❤️ for cybersecurity*
 
 </div>
+
+---
+
+## 🚀 Quick Access — Open the Dashboard
+
+> Click the links below anytime to instantly open the **SentinelGPT SOC Dashboard**:
+
+<div align="center">
+
+### 🌐 Live Vercel Deployment (Always Online — No Setup Required)
+
+## 👉 [**CLICK HERE TO OPEN LIVE DASHBOARD**](https://sentinelgpt-ai.vercel.app) 👈
+
+```
+https://sentinelgpt-ai.vercel.app
+```
+
+| Link | URL | Opens |
+|---|---|---|
+| 🖥️ **Live SOC Dashboard** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | Full SOC Operations Dashboard |
+| 📡 **Live API Health** | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) | System Health Status Page |
+| 📖 **Live API Docs** | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | Swagger API Documentation |
+
+---
+
+### 🏠 Localhost Deployment (Run Locally First)
+
+```bash
+# Step 1 — Start Backend
+python backend/main.py
+# Backend runs at: http://localhost:8000
+
+# Step 2 — Start Frontend (new terminal)
+cd frontend && npm run dev
+# Frontend runs at: http://localhost:5173
+```
+
+## 👉 [**CLICK HERE TO OPEN LOCAL DASHBOARD**](http://localhost:5173) 👈
+
+```
+http://localhost:5173
+```
+
+> ⚠️ The localhost link only works after running both commands above on your machine.
+
+</div>
