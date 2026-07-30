@@ -257,116 +257,97 @@ def get_current_user(request: Request):
 # API ENDPOINTS
 # ============================================================
 
+@app.get("/health", include_in_schema=False)
+@app.get("/health/", include_in_schema=False)
+@app.get("/api/health", include_in_schema=False)
+@app.get("/api/health/", include_in_schema=False)
+async def health_check(request: Request, format: Optional[str] = None):
+    accept = request.headers.get("accept", "").lower()
+    if format == "json" or ("application/json" in accept and "text/html" not in accept):
+        return JSONResponse(content={
+            "status": "NOMINAL",
+            "service": "SentinelGPT Autonomous Defense Core",
+            "version": "1.0.0",
+            "environment": "Vercel Serverless Production"
+        })
+
+    html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SentinelGPT Core API — Live Health Status</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #080c14; color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 40px; max-width: 540px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.7); text-align: center; }
+        .icon-wrapper { width: 72px; height: 72px; background: rgba(34,197,94,0.12); border: 2px solid rgba(34,197,94,0.3); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; box-shadow: 0 0 30px rgba(34,197,94,0.2); }
+        .pulse-dot { width: 24px; height: 24px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 20px #22c55e; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 14px rgba(34, 197, 94, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        .badge { display: inline-block; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+        h1 { font-size: 28px; font-weight: 800; color: #ffffff; margin-bottom: 10px; letter-spacing: -0.5px; }
+        p { color: #94a3b8; font-size: 15px; margin-bottom: 32px; line-height: 1.6; }
+        .grid { background: #0b1120; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; text-align: left; border: 1px solid #1e293b; margin-bottom: 32px; }
+        .item-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 4px; }
+        .item-value { font-size: 14px; font-weight: 600; color: #e2e8f0; }
+        .btn-group { display: flex; gap: 12px; }
+        .btn { flex: 1; padding: 14px; border-radius: 10px; font-weight: 600; font-size: 14px; text-decoration: none; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: #ffffff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #1e293b; color: #cbd5e1; border: 1px solid #334155; }
+        .btn-secondary:hover { background: #334155; color: #ffffff; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon-wrapper">
+            <div class="pulse-dot"></div>
+        </div>
+        <div class="badge">🟢 System Health Nominal</div>
+        <h1>SentinelGPT Core API</h1>
+        <p>Autonomous Cyber Defense Core Backend Service is online and operational 24/7 on Vercel.</p>
+        <div class="grid">
+            <div>
+                <div class="item-label">Status</div>
+                <div class="item-value" style="color: #4ade80;">200 OK (Nominal)</div>
+            </div>
+            <div>
+                <div class="item-label">Environment</div>
+                <div class="item-value">Vercel Serverless</div>
+            </div>
+            <div>
+                <div class="item-label">Core Engine</div>
+                <div class="item-value">FastAPI v1.0.0</div>
+            </div>
+            <div>
+                <div class="item-label">Security Mode</div>
+                <div class="item-value">Autonomous Heuristics</div>
+            </div>
+        </div>
+        <div class="btn-group">
+            <a href="/" class="btn btn-primary">Open SOC Platform</a>
+            <a href="/docs" class="btn btn-secondary">View API Docs</a>
+        </div>
+    </div>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content)
+
 @app.get("/")
 @app.get("/api")
 @app.get("/api/")
-async def root(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        return HTMLResponse(content="""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SentinelGPT Core API</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f19; color: #e2e8f0; margin: 0; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 36px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
-        .status-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 8px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
-        .dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; }
-        h1 { margin-top: 20px; margin-bottom: 8px; font-size: 26px; color: #f8fafc; font-weight: 700; }
-        p { color: #94a3b8; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
-        .info-grid { background: #0f172a; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; border: 1px solid #1e293b; }
-        .info-item { color: #94a3b8; }
-        .info-item strong { color: #cbd5e1; display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        .actions { margin-top: 28px; display: flex; gap: 14px; }
-        .btn { flex: 1; text-align: center; background: #3b82f6; color: white; padding: 12px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .btn:hover { background: #2563eb; }
-        .btn-sec { background: #334155; }
-        .btn-sec:hover { background: #475569; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="status-badge"><span class="dot"></span> SYSTEM OPERATIONAL</div>
-        <h1>SentinelGPT Core API</h1>
-        <p>Autonomous Cyber Defense Core Backend Service is online and operational.</p>
-        <div class="info-grid">
-            <div class="info-item"><strong>SERVICE</strong>SentinelGPT Core</div>
-            <div class="info-item"><strong>VERSION</strong>v1.0.0 Production</div>
-            <div class="info-item"><strong>ENVIRONMENT</strong>Vercel Serverless</div>
-            <div class="info-item"><strong>STATUS</strong>200 OK (Nominal)</div>
-        </div>
-        <div class="actions">
-            <a href="/" class="btn">Launch Platform</a>
-            <a href="/docs" class="btn btn-sec">API Documentation</a>
-        </div>
-    </div>
-</body>
-</html>""")
-    return JSONResponse(content={
-        "status": "NOMINAL",
-        "service": "SentinelGPT Autonomous Defense Core",
-        "version": "1.0.0",
-        "docs": "https://sentinelgpt-ai.vercel.app/docs",
-        "platform": "https://sentinelgpt-ai.vercel.app",
-        "environment": "Vercel Serverless Production"
-    })
-
-@app.get("/health")
-@app.get("/health/")
-@app.get("/api/health")
-@app.get("/api/health/")
-async def health_check(request: Request):
-    accept = request.headers.get("accept", "")
-    if "text/html" in accept:
-        return HTMLResponse(content="""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SentinelGPT Core API — Health Status</title>
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; background: #0b0f19; color: #e2e8f0; margin: 0; padding: 40px; display: flex; justify-content: center; align-items: center; min-height: 80vh; }
-        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 36px; max-width: 520px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.6); }
-        .status-badge { display: inline-flex; align-items: center; gap: 10px; background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.3); padding: 8px 18px; border-radius: 30px; font-weight: 700; font-size: 14px; }
-        .dot { width: 10px; height: 10px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 12px #22c55e; }
-        h1 { margin-top: 20px; margin-bottom: 8px; font-size: 26px; color: #f8fafc; font-weight: 700; }
-        p { color: #94a3b8; font-size: 15px; margin-bottom: 28px; line-height: 1.5; }
-        .info-grid { background: #0f172a; border-radius: 12px; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 14px; border: 1px solid #1e293b; }
-        .info-item { color: #94a3b8; }
-        .info-item strong { color: #cbd5e1; display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-        .actions { margin-top: 28px; display: flex; gap: 14px; }
-        .btn { flex: 1; text-align: center; background: #3b82f6; color: white; padding: 12px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; }
-        .btn:hover { background: #2563eb; }
-        .btn-sec { background: #334155; }
-        .btn-sec:hover { background: #475569; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div class="status-badge"><span class="dot"></span> SYSTEM HEALTH NOMINAL</div>
-        <h1>SentinelGPT Core API</h1>
-        <p>Autonomous Cyber Defense Core Backend Service is online and fully operational.</p>
-        <div class="info-grid">
-            <div class="info-item"><strong>SERVICE</strong>SentinelGPT Core</div>
-            <div class="info-item"><strong>VERSION</strong>v1.0.0 Production</div>
-            <div class="info-item"><strong>ENVIRONMENT</strong>Vercel Serverless</div>
-            <div class="info-item"><strong>STATUS</strong>200 OK (Nominal)</div>
-        </div>
-        <div class="actions">
-            <a href="/" class="btn">Launch Platform</a>
-            <a href="/docs" class="btn btn-sec">API Documentation</a>
-        </div>
-    </div>
-</body>
-</html>""")
-    return JSONResponse(content={
-        "status": "NOMINAL",
-        "service": "SentinelGPT Autonomous Defense Core",
-        "version": "1.0.0",
-        "environment": "Vercel Serverless Production"
-    })
+async def root(request: Request, format: Optional[str] = None):
+    accept = request.headers.get("accept", "").lower()
+    if format == "json" or ("application/json" in accept and "text/html" not in accept):
+        return JSONResponse(content={
+            "status": "NOMINAL",
+            "service": "SentinelGPT Autonomous Defense Core",
+            "version": "1.0.0",
+            "docs": "https://sentinelgpt-ai.vercel.app/docs",
+            "platform": "https://sentinelgpt-ai.vercel.app",
+            "environment": "Vercel Serverless Production"
+        })
+    return await health_check(request, format)
 
 @app.post("/login")
 @app.post("/api/login")
