@@ -483,42 +483,32 @@ GitHub: [@Pravallika2025](https://github.com/Pravallika2025)
 
 > Click the links below anytime to instantly open the **SentinelGPT SOC Dashboard**:
 
-<div align="center">
+### 🌐 Live Cloud Deployment (Always Online)
 
-### 🌐 Live Vercel Deployment (Always Online — No Setup Required)
-
-## 👉 [**CLICK HERE TO OPEN LIVE DASHBOARD**](https://sentinelgpt-ai.vercel.app) 👈
-
-```
-https://sentinelgpt-ai.vercel.app
-```
-
-| Link | URL | Opens |
-|---|---|---|
-| 🖥️ **Live SOC Dashboard** | [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app) | Full SOC Operations Dashboard |
-| 📡 **Live API Health** | [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health) | System Health Status Page |
-| 📖 **Live API Docs** | [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs) | Swagger API Documentation |
+- 🌐 **Live SOC Platform**: [https://sentinelgpt-ai.vercel.app](https://sentinelgpt-ai.vercel.app)
+- 📡 **Live API Health**: [https://sentinelgpt-ai.vercel.app/health](https://sentinelgpt-ai.vercel.app/health)
+- 📖 **Live API Docs**: [https://sentinelgpt-ai.vercel.app/docs](https://sentinelgpt-ai.vercel.app/docs)
 
 ---
 
 ### 🏠 Localhost Deployment (Run Locally First)
 
 ```bash
-# Step 1 — Start Backend
+# Step 1 — Start Backend API (Terminal 1)
 python backend/main.py
-# Backend runs at: http://localhost:8000
+# Backend available at: http://localhost:8000
 
-# Step 2 — Start Frontend (new terminal)
+# Step 2 — Start Frontend Dashboard (Terminal 2)
 cd frontend && npm run dev
-# Frontend runs at: http://localhost:5173
+# Frontend available at: http://localhost:5173
 ```
 
-## 👉 [**CLICK HERE TO OPEN LOCAL DASHBOARD**](http://localhost:5173) 👈
+### 👉 [**CLICK HERE TO OPEN LOCAL DASHBOARD (http://localhost:5173)**](http://localhost:5173) 👈
 
-```
-http://localhost:5173
-```
+| Service | Working Clickable Localhost Link | Command |
+|---|---|---|
+| 🖥️ **Local SOC Dashboard** | [http://localhost:5173](http://localhost:5173) | `cd frontend && npm run dev` |
+| ⚙️ **Local Backend API** | [http://localhost:8000](http://localhost:8000) | `python backend/main.py` |
+| 📖 **Local API Docs** | [http://localhost:8000/api/docs](http://localhost:8000/api/docs) | `python backend/main.py` |
 
-> ⚠️ The localhost link only works after running both commands above on your machine.
-
-</div>
+> ⚠️ *The localhost link works after running `npm run dev` and `python backend/main.py` on your machine.*
