@@ -153,17 +153,22 @@ app.add_middleware(
 # ============================================================
 # SWAGGER UI + OPENAPI ROUTES — registered AFTER middleware
 # ============================================================
+@app.get("/docs", include_in_schema=False, response_class=HTMLResponse)
+@app.get("/docs/", include_in_schema=False, response_class=HTMLResponse)
 @app.get("/api/docs", include_in_schema=False, response_class=HTMLResponse)
 @app.get("/api/docs/", include_in_schema=False, response_class=HTMLResponse)
-async def swagger_ui():
+async def swagger_ui(request: Request):
+    req_path = request.url.path
+    openapi_url = "/api/openapi.json" if req_path.startswith("/api") else "/openapi.json"
     html = get_swagger_ui_html(
-        openapi_url="/api/openapi.json",
+        openapi_url=openapi_url,
         title="SentinelGPT API Documentation",
         swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
         swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
     )
     return HTMLResponse(content=html.body)
 
+@app.get("/openapi.json", include_in_schema=False)
 @app.get("/api/openapi.json", include_in_schema=False)
 async def openapi_schema():
     schema = get_openapi(
@@ -231,13 +236,15 @@ async def root():
         "status": "NOMINAL",
         "service": "SentinelGPT Autonomous Defense Core",
         "version": "1.0.0",
-        "docs": "https://sentinelgpt-ai.vercel.app/api/docs",
+        "docs": "https://sentinelgpt-ai.vercel.app/docs",
         "platform": "https://sentinelgpt-ai.vercel.app",
         "environment": "Vercel Serverless Production"
     }
 
-@app.get("/api/health")
 @app.get("/health")
+@app.get("/health/")
+@app.get("/api/health")
+@app.get("/api/health/")
 async def health_check():
     return {
         "status": "NOMINAL",

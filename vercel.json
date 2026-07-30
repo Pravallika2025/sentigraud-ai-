@@ -15,15 +15,15 @@
   ],
   "routes": [
     {
-      "src": "/api/docs",
+      "src": "/docs(.*)",
       "dest": "/api/index.py"
     },
     {
-      "src": "/api/docs/",
+      "src": "/openapi.json",
       "dest": "/api/index.py"
     },
     {
-      "src": "/api/openapi.json",
+      "src": "/health(.*)",
       "dest": "/api/index.py"
     },
     {
